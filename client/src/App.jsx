@@ -550,49 +550,8 @@ export default function App() {
     return ['owner', 'admin', 'mod'].includes(role)
   }
 
-  useEffect(() => {
-    if (!siteData || !siteData.settings) return
-    if (!siteDataHydratedRef.current) return
-    if (!isAdminLevelUser(loggedUser)) return
-    saveSettingsToFirestore(siteData.settings).catch(() => {})
-  }, [siteData.settings, loggedUser?.id, siteDataHydratedRef.current])
-
-  useEffect(() => {
-    if (!siteData || !Array.isArray(siteData.users)) return
-    if (!siteDataHydratedRef.current) return
-    if (!isAdminLevelUser(loggedUser)) return
-
-    // Avoid a background refresh loop: user polling should update the list, not rewrite the entire users collection every time.
-    return
-  }, [siteData.users, loggedUser?.id, siteDataHydratedRef.current])
-
-  useEffect(() => {
-    if (!siteData || !Array.isArray(siteData.pages)) return
-    if (!siteDataHydratedRef.current) return
-    if (!isAdminLevelUser(loggedUser)) return
-    savePagesToFirestore(siteData.pages).catch(() => {})
-  }, [siteData.pages, loggedUser?.id, siteDataHydratedRef.current])
-
-  useEffect(() => {
-    if (!siteData || !Array.isArray(siteData.creators)) return
-    if (!siteDataHydratedRef.current) return
-    if (!isAdminLevelUser(loggedUser)) return
-    saveCreatorsToFirestore(siteData.creators).catch(() => {})
-  }, [siteData.creators, loggedUser?.id, siteDataHydratedRef.current])
-
-  useEffect(() => {
-    if (!siteData || !Array.isArray(siteData.news)) return
-    if (!siteDataHydratedRef.current) return
-    if (!isAdminLevelUser(loggedUser)) return
-    saveNewsToFirestore(siteData.news).catch(() => {})
-  }, [siteData.news, loggedUser?.id, siteDataHydratedRef.current])
-
-  useEffect(() => {
-    if (!siteData || !Array.isArray(siteData.products)) return
-    if (!siteDataHydratedRef.current) return
-    if (!isAdminLevelUser(loggedUser)) return
-    saveShopProductsToFirestore(siteData.products).catch(() => {})
-  }, [siteData.products, loggedUser?.id, siteDataHydratedRef.current])
+  // Auto-save effects are intentionally disabled to avoid infinite Firestore writes.
+  // Persist user/settings/pages changes only through explicit admin actions where needed.
 
   useEffect(() => {
     if (!loggedUser || !loggedUser.id || !Array.isArray(siteData.users)) return
