@@ -373,6 +373,48 @@ export default function App() {
   }
 
   useEffect(() => {
+    const preventSelection = (event) => {
+      const target = event.target
+      if (!target || typeof target.closest !== 'function') return
+
+      if (target.closest('input, textarea, select, [contenteditable="true"]')) {
+        return
+      }
+
+      event.preventDefault()
+    }
+
+    const preventShortcut = (event) => {
+      const key = event.key
+      const isDevToolsShortcut =
+        key === 'F12' ||
+        (event.ctrlKey && event.shiftKey && ['i', 'I', 'j', 'J', 'c', 'C'].includes(key)) ||
+        (event.ctrlKey && ['u', 'U', 's', 'S', 'p', 'P'].includes(key)) ||
+        (event.metaKey && event.altKey && ['i', 'I'].includes(key))
+
+      if (isDevToolsShortcut) {
+        event.preventDefault()
+        event.stopPropagation()
+        return false
+      }
+    }
+
+    document.addEventListener('contextmenu', preventSelection)
+    document.addEventListener('copy', preventSelection)
+    document.addEventListener('cut', preventSelection)
+    document.addEventListener('selectstart', preventSelection)
+    document.addEventListener('keydown', preventShortcut)
+
+    return () => {
+      document.removeEventListener('contextmenu', preventSelection)
+      document.removeEventListener('copy', preventSelection)
+      document.removeEventListener('cut', preventSelection)
+      document.removeEventListener('selectstart', preventSelection)
+      document.removeEventListener('keydown', preventShortcut)
+    }
+  }, [])
+
+  useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(siteData))
   }, [siteData])
 

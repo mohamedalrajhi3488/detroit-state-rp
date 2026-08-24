@@ -19,6 +19,9 @@ html {
   scroll-behavior: smooth;
   direction: ltr;
   overflow-x: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 body {
   margin: 0;
@@ -28,6 +31,17 @@ body {
   font-family: 'Cairo', sans-serif;
   direction: ltr;
   overflow-x: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+input,
+textarea,
+select,
+[contenteditable="true"] {
+  user-select: text !important;
+  -webkit-user-select: text !important;
 }
 
 [dir="rtl"],
