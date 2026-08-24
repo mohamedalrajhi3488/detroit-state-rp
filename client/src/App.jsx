@@ -493,10 +493,16 @@ export default function App() {
       try {
         const firestoreUsers = await getUsersFromFirestore()
         if (Array.isArray(firestoreUsers) && firestoreUsers.length) {
-          setSiteData((current) => ({
-            ...current,
-            users: firestoreUsers
-          }))
+          setSiteData((current) => {
+            const nextUsers = firestoreUsers
+            const existing = current.users || []
+            const sameUsers = existing.length === nextUsers.length && existing.every((entry, index) => {
+              const next = nextUsers[index]
+              return !!next && String(entry.id) === String(next.id) && (entry.lastSeen || '') === (next.lastSeen || '')
+            })
+            if (sameUsers) return current
+            return { ...current, users: nextUsers }
+          })
           return
         }
 
@@ -504,10 +510,16 @@ export default function App() {
         if (!res.ok) return
         const data = await res.json()
         if (Array.isArray(data) && data.length) {
-          setSiteData((current) => ({
-            ...current,
-            users: [...data, ...((current.users || []).filter((user) => !data.some((registered) => String(registered.id) === String(user.id))))]
-          }))
+          const mergedUsers = [...data, ...((siteData.users || []).filter((user) => !data.some((registered) => String(registered.id) === String(user.id))))]
+          setSiteData((current) => {
+            const existing = current.users || []
+            const sameUsers = existing.length === mergedUsers.length && existing.every((entry, index) => {
+              const next = mergedUsers[index]
+              return !!next && String(entry.id) === String(next.id) && (entry.lastSeen || '') === (next.lastSeen || '')
+            })
+            if (sameUsers) return current
+            return { ...current, users: mergedUsers }
+          })
         }
       } catch {
         // ignore background sync failures
@@ -550,12 +562,8 @@ export default function App() {
     if (!siteDataHydratedRef.current) return
     if (!isAdminLevelUser(loggedUser)) return
 
-    const now = Date.now()
-    const lastWriteAt = lastSeenUpdateRef.current.get('userBatchWrite') || 0
-    if (now - lastWriteAt < 30000) return
-
-    lastSeenUpdateRef.current.set('userBatchWrite', now)
-    saveUsersToFirestore(siteData.users).catch(() => {})
+    // Avoid a background refresh loop: user polling should update the list, not rewrite the entire users collection every time.
+    return
   }, [siteData.users, loggedUser?.id, siteDataHydratedRef.current])
 
   useEffect(() => {
