@@ -32,14 +32,18 @@ export default function LoginPage({ onClose, onLogin }) {
             </h2>
           </div>
 
+          <div className="login-badge">عضو رسمي</div>
           <h1>تسجيل الدخول</h1>
 
           <div className="discord-login-box">
             <p>للدخول إلى الموقع، يجب أن تكون عضواً في سيرفر Discord الخاص بنا.</p>
-            <button className="btn btn-primary full-width" type="button" onClick={submit}>تسجيل الدخول عبر الديسكورد</button>
+            <button className="discord-login-btn" type="button" onClick={submit}>
+              <span>تسجيل الدخول عبر الديسكورد</span>
+            </button>
           </div>
 
           <div className="login-footer">
+            <span>ليس لديك دعوة؟</span>
             <a href="https://discord.gg/DSRP" target="_blank" rel="noreferrer">انضم الآن</a>
           </div>
         </div>

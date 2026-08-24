@@ -1063,9 +1063,9 @@
   z-index: 2000;
   display: grid;
   place-items: center;
-  background: rgba(4, 8, 14, 0.7);
-  backdrop-filter: blur(4px);
-  padding: 32px;
+  background: rgba(4, 8, 14, 0.72);
+  backdrop-filter: blur(6px);
+  padding: 24px;
 }
 
 .login-shell {
@@ -1154,10 +1154,27 @@
   background: rgba(12, 17, 24, 0.82);
 }
 
+.login-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(157, 77, 255, 0.12);
+  color: #e8d8ff;
+  border: 1px solid rgba(157, 77, 255, 0.28);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .login-close {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 14px;
+  right: 14px;
   width: 42px;
   height: 42px;
   display: grid;
@@ -1170,21 +1187,7 @@
   font-size: 2.3rem;
   line-height: 1;
   cursor: pointer;
-  transform: translateY(0);
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.login-close span,
-.login-close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.login-close {
-  position: absolute;
-  top: 8px;
-  right: 8px;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .login-close::before {
@@ -1201,15 +1204,6 @@
 
 .back-link {
   display: none;
-}
-
-.back-link {
-  align-self: flex-start;
-  margin-bottom: 26px;
-  background: transparent;
-  border: 0;
-  color: #dfe8ff;
-  cursor: pointer;
 }
 
 .login-panel h1 {
@@ -1253,6 +1247,22 @@
   line-height: 1.8;
 }
 
+.discord-login-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  padding: 16px 18px;
+  color: white;
+  background: linear-gradient(135deg, #5aa3ff, #2d75ff);
+  box-shadow: 0 12px 24px rgba(45, 117, 255, 0.28);
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .full-width {
   width: 100%;
 }
@@ -1264,11 +1274,13 @@
   gap: 8px;
   margin-top: 22px;
   color: #a7adbf;
+  font-size: 0.9rem;
 }
 
 .login-footer a {
   color: #d8c2ff;
   text-decoration: none;
+  font-weight: 700;
 }
 
 @media (max-width: 900px) {
@@ -1290,5 +1302,77 @@
   .admin-sidebar {
     border-left: 0;
     border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+}
+
+@media (max-width: 640px) {
+  .login-page {
+    padding: 16px;
+  }
+
+  .login-shell {
+    width: min(100%, 420px);
+    border-radius: 22px;
+    overflow: hidden;
+  }
+
+  .login-visual {
+    display: none;
+  }
+
+  .login-panel {
+    padding: 42px 18px 22px;
+    min-height: 420px;
+    background: linear-gradient(180deg, rgba(12, 17, 24, 0.96), rgba(8, 11, 17, 0.98));
+  }
+
+  .login-logo-top {
+    margin-top: 8px;
+  }
+
+  .login-logo-top img {
+    width: 90px;
+    height: 90px;
+  }
+
+  .mini-brand {
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+  }
+
+  .login-copy h2 {
+    font-size: 1.9rem;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .login-panel h1 {
+    font-size: 1.8rem;
+    text-align: center;
+  }
+
+  .login-badge {
+    align-self: center;
+  }
+
+  .discord-login-box {
+    padding: 16px 14px;
+  }
+
+  .discord-login-box p {
+    font-size: 0.87rem;
+    text-align: center;
+  }
+
+  .discord-login-btn {
+    padding: 14px 16px;
+    font-size: 0.95rem;
+  }
+
+  .login-footer {
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 0.8rem;
   }
 }
