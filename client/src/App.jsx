@@ -724,14 +724,17 @@ export default function App() {
 
         const resolvedRole = matchedStoredUser?.role || storedUser?.role || 'Discord User'
 
-        setLoggedUser({
+        const resolvedUser = {
           id: data.id,
           name: data.username || data.name || 'User',
           email: data.email || `${(data.username || 'user').toLowerCase()}@discord`,
           avatar: buildDiscordAvatar(data),
           role: resolvedRole,
           status: data.status || 'offline'
-        })
+        }
+
+        setLoggedUser(resolvedUser)
+        syncLoggedUserToFirestore(resolvedUser)
       } catch {
         if (active) {
           const storedUser = (() => {
@@ -893,6 +896,7 @@ export default function App() {
       if (currentUserId) {
         clearLoginRecord(currentUserId)
         handledLoginIdsRef.current.delete(String(currentUserId))
+        processingLoginIdsRef.current.delete(String(currentUserId))
       }
       document.cookie = 'sid=; Max-Age=0; path=/; SameSite=Lax'
       if (window.location.pathname === '/admin') {
@@ -907,6 +911,66 @@ export default function App() {
       })
     } catch {
       // no-op: local logout is still applied even if the server request fails
+    }
+  }
+
+  const syncLoggedUserToFirestore = async (userData) => {
+    if (!userData || !userData.id) return null
+
+    const userId = String(userData.id)
+    const matchingUser = Array.isArray(siteData.users)
+      ? siteData.users.find((item) => String(item.id) === userId)
+      : null
+
+    const userPayload = {
+      id: userId,
+      name: userData.name || userData.username || 'مستخدم',
+      email: userData.email || `${(userData.username || userData.name || 'user').toLowerCase()}@discord`,
+      role: matchingUser?.role || userData.role || 'Member',
+      avatar: userData.avatar || null,
+      firstLoginAt: matchingUser?.firstLoginAt || userData.firstLoginAt || new Date().toISOString(),
+      lastSeen: new Date().toISOString()
+    }
+
+    try {
+      const savedUser = await saveUserToFirestore(userPayload)
+      const nextUsers = Array.isArray(siteData.users)
+        ? [savedUser || userPayload, ...siteData.users.filter((item) => String(item.id) !== userId)]
+        : [savedUser || userPayload]
+
+      setSiteData((current) => ({
+        ...current,
+        users: nextUsers
+      }))
+
+      const response = await fetch('/api/register-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userPayload)
+      })
+
+      if (!response.ok) {
+        return savedUser || userPayload
+      }
+
+      const payload = await response.json()
+      if (Array.isArray(payload.users)) {
+        setSiteData((current) => ({
+          ...current,
+          users: payload.users
+        }))
+      }
+
+      return payload.user || savedUser || userPayload
+    } catch {
+      const fallbackUser = userPayload
+      setSiteData((current) => ({
+        ...current,
+        users: Array.isArray(current.users)
+          ? [fallbackUser, ...current.users.filter((item) => String(item.id) !== userId)]
+          : [fallbackUser]
+      }))
+      return fallbackUser
     }
   }
 
