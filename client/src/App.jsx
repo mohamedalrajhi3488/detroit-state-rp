@@ -276,6 +276,7 @@ const getSavedData = () => {
 
 export default function App() {
   const handledLoginIdsRef = useRef(new Set())
+  const processingLoginIdsRef = useRef(new Set())
   const siteDataHydratedRef = useRef(false)
   const pageTransitionTimerRef = useRef(null)
   const [appLoading, setAppLoading] = useState(true)
@@ -591,16 +592,16 @@ export default function App() {
     if (!loggedUser || !loggedUser.id) return
 
     const userId = String(loggedUser.id)
-    if (handledLoginIdsRef.current.has(userId)) {
+    if (handledLoginIdsRef.current.has(userId) || processingLoginIdsRef.current.has(userId)) {
       return
     }
-    handledLoginIdsRef.current.add(userId)
+
+    processingLoginIdsRef.current.add(userId)
 
     const matchedStoredUser = Array.isArray(siteData.users)
       ? siteData.users.find((userItem) => String(userItem.id) === userId)
       : null
     const isAlreadyKnownUser = Boolean(matchedStoredUser || hasRecordedLogin(userId))
-
     const effectiveRole = matchedStoredUser?.role || loggedUser.role || 'Discord User'
 
     const userPayload = {
@@ -614,10 +615,6 @@ export default function App() {
 
     const syncUserState = async () => {
       try {
-        if (handledLoginIdsRef.current.has(userId)) {
-          return
-        }
-
         const savedUser = await saveUserToFirestore(userPayload)
 
         if (savedUser) {
@@ -650,7 +647,6 @@ export default function App() {
           }
 
           markLoginRecorded(userId)
-          handledLoginIdsRef.current.add(userId)
         }
 
         if (!isAlreadyKnownUser) {
@@ -660,32 +656,34 @@ export default function App() {
             body: JSON.stringify(userPayload)
           })
 
-          if (!response.ok) return
+          if (response.ok) {
+            const payload = await response.json()
+            if (Array.isArray(payload.users)) {
+              setSiteData((current) => ({
+                ...current,
+                users: payload.users
+              }))
+            }
 
-          const payload = await response.json()
-          if (Array.isArray(payload.users)) {
-            setSiteData((current) => ({
-              ...current,
-              users: payload.users
-            }))
-          }
-
-          if (payload.activity && !hasRecordedLogin(userId)) {
-            setActivityLog((current) => {
-              const exists = current.some((item) => item.id === payload.activity.id)
-              return exists ? current : [payload.activity, ...current].slice(0, 50)
-            })
-            markLoginRecorded(userId)
-            handledLoginIdsRef.current.add(userId)
+            if (payload.activity) {
+              setActivityLog((current) => {
+                const exists = current.some((item) => item.id === payload.activity.id)
+                return exists ? current : [payload.activity, ...current].slice(0, 50)
+              })
+            }
           }
         }
+
+        handledLoginIdsRef.current.add(userId)
       } catch {
         // no-op: local fallback remains in browser storage for offline scenarios
+      } finally {
+        processingLoginIdsRef.current.delete(userId)
       }
     }
 
     syncUserState()
-  }, [loggedUser?.id, siteData.users])
+  }, [loggedUser?.id])
 
   useEffect(() => {
     let active = true
