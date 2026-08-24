@@ -1302,10 +1302,151 @@
   .admin-sidebar {
     border-left: 0;
     border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 16px 12px;
+  }
+
+  .admin-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .admin-main {
+    padding: 18px 14px 22px;
+  }
+
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dashboard-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-lower-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-copy strong {
+    font-size: 1.8rem;
+  }
+
+  .quick-actions-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 640px) {
+  .admin-panel-shell {
+    min-height: auto;
+  }
+
+  .admin-sidebar {
+    padding: 12px;
+  }
+
+  .admin-brand {
+    padding: 8px 8px 12px;
+  }
+
+  .admin-brand strong {
+    font-size: 1rem;
+  }
+
+  .admin-nav {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-nav-item,
+  .logout-btn,
+  .mini-btn {
+    min-height: 42px;
+    padding: 11px 12px;
+    font-size: 0.92rem;
+  }
+
+  .admin-main {
+    padding: 14px 12px 20px;
+  }
+
+  .admin-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .notice-box,
+  .dashboard-banner,
+  .activity-panel,
+  .chart-panel,
+  .quick-actions-panel,
+  .panel-card {
+    border-radius: 14px;
+  }
+
+  .dashboard-banner {
+    padding: 18px 14px;
+    font-size: 1rem;
+    text-align: center;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .dashboard-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-card {
+    padding: 14px 12px;
+  }
+
+  .metric-copy strong {
+    font-size: 1.5rem;
+  }
+
+  .activity-list li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .chart-wrap {
+    height: 200px;
+  }
+
+  .panel-heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .quick-actions-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .action-card {
+    min-height: 90px;
+    padding: 12px;
+    font-size: 0.85rem;
+  }
+
+  .creator-form-grid,
+  .form-grid,
+  .settings-grid,
+  .product-form-grid,
+  .news-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .popup-form,
+  .page-editor,
+  .creator-editor,
+  .news-editor,
+  .product-form {
+    padding: 14px;
+  }
+
+  .table-scroll {
+    overflow-x: auto;
+  }
   .login-page {
     padding: 16px;
   }
