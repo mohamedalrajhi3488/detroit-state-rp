@@ -32,7 +32,7 @@ export default function LoginPage({ onClose, onLogin }) {
             </h2>
           </div>
 
-          <div className="login-badge">عضو رسمي</div>
+          <div className="login-badge">بوابة الدخول</div>
           <h1>تسجيل الدخول</h1>
 
           <div className="discord-login-box">
