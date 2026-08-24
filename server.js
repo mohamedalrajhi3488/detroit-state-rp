@@ -65,6 +65,9 @@ const addRegisteredUser = (user) => {
   if (!user || !user.id) return null
 
   const existing = REGISTERED_USERS.get(String(user.id))
+  const now = Date.now()
+  const existingLastSeen = existing?.lastSeen ? new Date(existing.lastSeen).getTime() : 0
+  const shouldRefreshLastSeen = !existing || !existingLastSeen || (now - existingLastSeen) > 30000
 
   const normalizedUser = {
     id: user.id,
@@ -72,7 +75,7 @@ const addRegisteredUser = (user) => {
     email: user.email || `${(user.username || user.name || 'user').toLowerCase()}@discord`,
     role: user.role || 'Discord User',
     firstLoginAt: existing?.firstLoginAt || user.firstLoginAt || new Date().toISOString(),
-    lastSeen: new Date().toISOString(),
+    lastSeen: shouldRefreshLastSeen ? new Date().toISOString() : existing?.lastSeen || new Date().toISOString(),
     avatar: user.avatar || null
   }
 

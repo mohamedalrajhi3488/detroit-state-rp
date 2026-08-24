@@ -549,6 +549,12 @@ export default function App() {
     if (!siteData || !Array.isArray(siteData.users)) return
     if (!siteDataHydratedRef.current) return
     if (!isAdminLevelUser(loggedUser)) return
+
+    const now = Date.now()
+    const lastWriteAt = lastSeenUpdateRef.current.get('userBatchWrite') || 0
+    if (now - lastWriteAt < 30000) return
+
+    lastSeenUpdateRef.current.set('userBatchWrite', now)
     saveUsersToFirestore(siteData.users).catch(() => {})
   }, [siteData.users, loggedUser?.id, siteDataHydratedRef.current])
 

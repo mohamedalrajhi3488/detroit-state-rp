@@ -82,6 +82,10 @@ export const saveUserToFirestore = async (user) => {
     const existingSnap = await getDoc(existingRef)
     const existingData = existingSnap.exists() ? existingSnap.data() : {}
 
+    const existingLastSeen = existingData?.lastSeen ? new Date(existingData.lastSeen).getTime() : 0
+    const now = Date.now()
+    const shouldUpdateLastSeen = !existingData?.lastSeen || !existingLastSeen || (now - existingLastSeen) > 30000
+
     const payload = {
       id: String(user.id),
       name: user.name || 'User',
@@ -89,7 +93,7 @@ export const saveUserToFirestore = async (user) => {
       role: user.role || 'Discord User',
       avatar: user.avatar || null,
       firstLoginAt: user.firstLoginAt || existingData.firstLoginAt || new Date().toISOString(),
-      lastSeen: new Date().toISOString()
+      lastSeen: shouldUpdateLastSeen ? new Date().toISOString() : existingData.lastSeen || user.lastSeen || new Date().toISOString()
     }
 
     await setDoc(existingRef, payload)
@@ -108,6 +112,9 @@ export const saveUsersToFirestore = async (users) => {
       const existingRef = doc(db, 'users', String(user.id))
       const existingSnap = await getDoc(existingRef)
       const existingData = existingSnap.exists() ? existingSnap.data() : {}
+      const existingLastSeen = existingData?.lastSeen ? new Date(existingData.lastSeen).getTime() : 0
+      const now = Date.now()
+      const shouldUpdateLastSeen = !existingData?.lastSeen || !existingLastSeen || (now - existingLastSeen) > 30000
 
       const payload = {
         id: String(user.id),
@@ -116,7 +123,7 @@ export const saveUsersToFirestore = async (users) => {
         role: user.role || 'Member',
         avatar: user.avatar || null,
         firstLoginAt: user.firstLoginAt || existingData.firstLoginAt || new Date().toISOString(),
-        lastSeen: user.lastSeen || existingData.lastSeen || new Date().toISOString()
+        lastSeen: shouldUpdateLastSeen ? new Date().toISOString() : existingData.lastSeen || user.lastSeen || new Date().toISOString()
       }
 
       await setDoc(existingRef, payload)
