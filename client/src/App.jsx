@@ -277,6 +277,7 @@ const getSavedData = () => {
 export default function App() {
   const handledLoginIdsRef = useRef(new Set())
   const processingLoginIdsRef = useRef(new Set())
+  const lastSeenUpdateRef = useRef(new Map())
   const siteDataHydratedRef = useRef(false)
   const pageTransitionTimerRef = useRef(null)
   const [appLoading, setAppLoading] = useState(true)
@@ -755,7 +756,7 @@ export default function App() {
 
     loadDiscordUser()
     return () => { active = false }
-  }, [siteData.users])
+  }, [])
 
   useEffect(() => {
     const syncHash = () => {
@@ -918,6 +919,13 @@ export default function App() {
     if (!userData || !userData.id) return null
 
     const userId = String(userData.id)
+    const now = Date.now()
+    const lastSeenUpdateAt = lastSeenUpdateRef.current.get(userId) || 0
+    if (now - lastSeenUpdateAt < 30000) {
+      return null
+    }
+    lastSeenUpdateRef.current.set(userId, now)
+
     const matchingUser = Array.isArray(siteData.users)
       ? siteData.users.find((item) => String(item.id) === userId)
       : null
