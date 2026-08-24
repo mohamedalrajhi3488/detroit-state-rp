@@ -24,7 +24,7 @@ const getRedirectUri = (req = null) => {
 
   return `${forwardedProto}://${host}/auth/discord/callback`;
 };
-const REDIRECT_URI = process.env.REDIRECT_URI || 'https://example-production.up.railway.app/auth/discord/callback';
+const REDIRECT_URI = process.env.REDIRECT_URI || 'https://dsrp.up.railway.app/auth/discord/callback';
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const TARGET_GUILD_ID = process.env.TARGET_GUILD_ID;
 const JWT_SECRET = process.env.JWT_SECRET || process.env.CLIENT_SECRET || 'dsrp-login-secret';
