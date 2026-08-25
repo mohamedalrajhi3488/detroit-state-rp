@@ -19,15 +19,7 @@ export default function Shop({ products = [] }) {
         <div className="shop-hero hero-shell">
           <div className="shop-hero-backdrop hero-background" style={{ backgroundImage: `linear-gradient(90deg, rgba(3,7,13,0.74), rgba(3,7,13,0.4)), url('/img/banner.png')` }} />
           <div className="hero-content shop-hero-copy">
-            <div className="hero-topline">
-              <span className="hero-badge">المتجر الرسمي</span>
-              <span className="live-dot">متاح الآن</span>
-            </div>
-
-            <h1 className="hero-title shop-title">
-              <span className="hero-word">DS STORE</span>
-              <span className="hero-word ghost">DS STORE</span>
-            </h1>
+            <h1 className="hero-title shop-title">DS STORE</h1>
 
             <p className="hero-subtitle shop-subtitle">
                اختر الخطة المناسبة لك واستمتع بمزايا VIP، دعم فوري سريع، وتجربة شراء سهلة ومميزة وكل هذا واكثر داخل مجتمع ديترويت.

@@ -1,39 +1,87 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
-export default function Hero() {
+export default function Hero({ loggedUser = null, onLoginClick }) {
+  const [onlineCount, setOnlineCount] = useState(0)
+
+  const joinServerUrl = 'https://cfx.re/join/dg3r3zd'
+  const isLoggedIn = Boolean(loggedUser)
+
+  useEffect(() => {
+    let active = true
+
+    const loadOnlineCount = async () => {
+      try {
+        const response = await fetch('/api/server-status', { cache: 'no-store' })
+        if (!response.ok) throw new Error('server status unavailable')
+
+        const data = await response.json()
+        const playersPayload = data?.players ?? data?.Data?.players ?? data?.data?.players ?? []
+        const nextCount = Array.isArray(playersPayload) ? playersPayload.length : Number(playersPayload || 0)
+
+        if (active) {
+          setOnlineCount(Number.isFinite(nextCount) ? nextCount : 0)
+        }
+      } catch {
+        if (active) {
+          setOnlineCount(0)
+        }
+      }
+    }
+
+    loadOnlineCount()
+    const timer = window.setInterval(loadOnlineCount, 30000)
+
+    return () => {
+      active = false
+      window.clearInterval(timer)
+    }
+  }, [])
+
   return (
     <section className="hero-shell">
-      <div className="hero-background" aria-hidden="true" />
+      <video
+        className="hero-video"
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-hidden="true"
+      >
+        <source src="/img/ds.mp4" type="video/mp4" />
+      </video>
+
+      <div className="hero-overlay" aria-hidden="true" />
 
       <div className="hero-content">
-        <div className="hero-topline">
-          <span className="hero-badge">Season 1</span>
-          <span className="live-dot">0 متصل</span>
+        <div className="hero-badges" aria-label="Detroit State live player count">
+          <span className="hero-chip hero-chip--live">
+            <span className="hero-live-text">متصل</span>
+            <span className="hero-live-count">{onlineCount}</span>
+            <span className="hero-live-dot" aria-hidden="true" />
+          </span>
+          <span className="hero-chip hero-chip--primary">Season 1</span>
         </div>
 
         <h1 className="hero-title">
-          <span className="hero-word">DETROIT STATE</span>
-          <span className="hero-word ghost">DETROIT STATE</span>
+          DETROIT STATE
         </h1>
-        <div className="hero-season">S E A S O N 1</div>
 
         <p className="hero-subtitle">
-          انضم إلى آفاق جديدة من الواقعية. المجتمع الأرقى لصناع القصص والأساطير.
+          حياكم الله في سيرفر ديترويت ستيت المتخصص في الرول بلاي، نحاول جاهدين تقديم أفضل تجربة للرول بلاي في شمال افريقيا. انضم إلينا الآن وعِش حياتك كما تريد.
         </p>
 
         <div className="hero-actions">
-          <a className="btn btn-primary" href="fivem://connect/dg3r3zd">
-            ابدأ رحلتك
-          </a>
-          <a className="btn btn-secondary" href="https://discord.gg/DSRP" target="_blank" rel="noreferrer">
-            ديسكورد
-          </a>
+          {isLoggedIn ? (
+            <a className="btn btn-primary" href={joinServerUrl} target="_blank" rel="noreferrer">
+              ابدأ رحلتك
+            </a>
+          ) : (
+            <button type="button" className="btn btn-primary" onClick={onLoginClick || (() => window.location.href = '/auth/discord')}>
+              تسجيل الدخول
+            </button>
+          )}
         </div>
       </div>
-
-      <span className="scroll-cue" aria-hidden="true">
-        <span className="scroll-cue-arrow" />
-      </span>
     </section>
   )
 }

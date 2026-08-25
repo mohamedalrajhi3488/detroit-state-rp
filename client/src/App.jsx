@@ -991,10 +991,7 @@ export default function App() {
           />
 
           <div className="news-hero-content">
-            <h1 className="hero-title news-title">
-              <span className="hero-word">DS NEWS</span>
-              <span className="hero-word ghost">DS NEWS</span>
-            </h1>
+            <h1 className="hero-title news-title">DS NEWS</h1>
 
             <p className="hero-subtitle news-subtitle">
              تغطية حصرية لكل ما يحدث في مجتمع ديترويت. كن أول من يعرف التحديثات والفعاليات.
@@ -1081,7 +1078,7 @@ export default function App() {
     if (currentPage === 'home' || !currentPage) {
       return (
         <>
-          <Hero />
+          <Hero loggedUser={loggedUser} onLoginClick={handleLogin} />
           <Features />
           <Streamers creators={siteData.creators || defaultCreators} />
           <Rules />
