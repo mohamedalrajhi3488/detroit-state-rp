@@ -22,7 +22,7 @@ export default function Hero() {
         </p>
 
         <div className="hero-actions">
-          <a className="btn btn-primary" href="fivem://connect/dmqyj5">
+          <a className="btn btn-primary" href="fivem://connect/dg3r3zd">
             ابدأ رحلتك
           </a>
           <a className="btn btn-secondary" href="https://discord.gg/DSRP" target="_blank" rel="noreferrer">
