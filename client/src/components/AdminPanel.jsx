@@ -280,15 +280,15 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     }
 
     if (Array.isArray(nextPages)) {
-      savePagesToFirestore(nextPages).catch(() => {})
+      savePagesToFirestore(nextPages).catch((err) => { console.warn('savePagesToFirestore error:', err); notify('error', 'فشل حفظ الصفحات إلى Firestore.'); })
     }
 
     if (Array.isArray(nextCreators)) {
-      saveCreatorsToFirestore(nextCreators).catch(() => {})
+      saveCreatorsToFirestore(nextCreators).catch((err) => { console.warn('saveCreatorsToFirestore error:', err); notify('error', 'فشل حفظ صانعي المحتوى إلى Firestore.'); })
     }
 
     if (Array.isArray(nextNews)) {
-      saveNewsToFirestore(nextNews).catch(() => {})
+      saveNewsToFirestore(nextNews).catch((err) => { console.warn('saveNewsToFirestore error:', err); notify('error', 'فشل حفظ الأخبار إلى Firestore.'); })
     }
 
     if (Array.isArray(nextProducts)) {
