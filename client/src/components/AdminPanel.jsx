@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { savePagesToFirestore, saveShopProductsToFirestore } from '../firebase'
+import { savePagesToFirestore, saveShopProductsToFirestore, saveUsersToFirestore } from '../firebase'
 
 const formatNumericActivityTime = (value) => {
   const date = new Date(value)
@@ -281,6 +281,10 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
 
     if (Array.isArray(nextPages)) {
       savePagesToFirestore(nextPages).catch(() => {})
+    }
+
+    if (Array.isArray(nextUsers)) {
+      saveUsersToFirestore(nextUsers).catch(() => {})
     }
 
     if (Array.isArray(nextProducts)) {
