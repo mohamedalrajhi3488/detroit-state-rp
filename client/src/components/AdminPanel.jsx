@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { savePagesToFirestore, saveShopProductsToFirestore, saveCreatorsToFirestore, saveNewsToFirestore, saveUsersToFirestore } from '../firebase'
+import { savePagesToFirestore, saveShopProductsToFirestore, saveCreatorsToFirestore, saveNewsToFirestore, saveUsersToFirestore, saveStaffToFirestore } from '../firebase'
 
 const formatNumericActivityTime = (value) => {
   const date = new Date(value)
@@ -141,11 +141,11 @@ const getAvailableTabs = (role) => {
   const normalized = normalizeUserRole(role)
 
   if (normalized === 'Owner') {
-    return ['dashboard', 'pages', 'shop', 'users', 'creators', 'news', 'activities', 'settings']
+    return ['dashboard', 'pages', 'shop', 'users', 'creators', 'staff', 'news', 'activities', 'settings']
   }
 
   if (normalized === 'Admin') {
-    return ['dashboard', 'shop', 'news', 'activities']
+    return ['dashboard', 'shop', 'staff', 'news', 'activities']
   }
 
   if (normalized === 'Mod') {
@@ -159,6 +159,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   const [pages, setPages] = useState(data?.pages || [])
   const [users, setUsers] = useState(data?.users || [])
   const [creators, setCreators] = useState(data?.creators || [])
+  const [staff, setStaff] = useState(data?.staff || [])
   const [news, setNews] = useState(data?.news || [])
   const [shopProducts, setShopProducts] = useState(data?.products || [])
   const [settings, setSettings] = useState(data?.settings || {})
@@ -170,6 +171,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   const [creatorSearch, setCreatorSearch] = useState('')
   const [activitySearch, setActivitySearch] = useState('')
   const [creatorFormOpen, setCreatorFormOpen] = useState(false)
+  const [staffFormOpen, setStaffFormOpen] = useState(false)
   const [pageFormOpen, setPageFormOpen] = useState(false)
   const [pendingDelete, setPendingDelete] = useState(null)
   const [activityDeleteConfirm, setActivityDeleteConfirm] = useState(null)
@@ -179,6 +181,19 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     name: '',
     platform: 'TikTok',
     followers: '',
+    image: '',
+    url: '',
+    visible: true
+  })
+
+  const [staffForm, setStaffForm] = useState({
+    id: null,
+    name: '',
+    username: '',
+    title: '',
+    role: 'staff',
+    group: 'staff',
+    account: '',
     image: '',
     url: '',
     visible: true
@@ -216,6 +231,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     setPages(data?.pages || [])
     setUsers(data?.users || [])
     setCreators(data?.creators || [])
+    setStaff(data?.staff || [])
     setNews(data?.news || [])
     setShopProducts(data?.products || [])
     setSettings(data?.settings || {})
@@ -233,7 +249,8 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     nextCreators = creators,
     nextNews = news,
     nextSettings = settings,
-    nextProducts = shopProducts
+    nextProducts = shopProducts,
+    nextStaff = staff
   ) => {
     const payload = {
       pages: nextPages,
@@ -241,12 +258,14 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
       creators: nextCreators,
       news: nextNews,
       settings: nextSettings,
-      products: nextProducts
+      products: nextProducts,
+      staff: nextStaff
     }
 
     setPages(nextPages)
     setUsers(nextUsers)
     setCreators(nextCreators)
+    setStaff(nextStaff)
     setNews(nextNews)
     setSettings(nextSettings)
     setShopProducts(nextProducts)
@@ -275,7 +294,8 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
         creators: nextCreators,
         news: nextNews,
         settings: nextSettings,
-        products: nextProducts
+        products: nextProducts,
+        staff: nextStaff
       }))
     }
 
@@ -297,6 +317,10 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
 
     if (Array.isArray(nextProducts)) {
       saveShopProductsToFirestore(nextProducts).catch((err) => { console.warn('saveShopProductsToFirestore error:', err) })
+    }
+
+    if (Array.isArray(nextStaff)) {
+      saveStaffToFirestore(nextStaff).catch((err) => { console.warn('saveStaffToFirestore error:', err); notify('error', 'فشل حفظ الطاقم الإداري إلى Firestore.'); })
     }
   }
 
@@ -569,6 +593,21 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     })
   }
 
+  const resetStaffForm = () => {
+    setStaffForm({
+      id: null,
+      name: '',
+      username: '',
+      title: '',
+      role: 'staff',
+      group: 'staff',
+      account: '',
+      image: '',
+      url: '',
+      visible: true
+    })
+  }
+
   const resetPageForm = () => {
     setPageForm({
       id: '',
@@ -586,6 +625,27 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   const openCreatePage = () => {
     resetPageForm()
     setPageFormOpen(true)
+  }
+
+  const openCreateStaff = () => {
+    resetStaffForm()
+    setStaffFormOpen(true)
+  }
+
+  const openEditStaff = (member) => {
+    setStaffForm({
+      ...member,
+      name: member.name || '',
+      username: member.username || member.title || '',
+      title: member.title || member.role || '',
+      role: member.role || member.group || 'staff',
+      group: member.group || member.role || 'staff',
+      account: member.account || '',
+      image: member.image || '',
+      url: member.url || '',
+      visible: member.visible !== false
+    })
+    setStaffFormOpen(true)
   }
 
   const openEditPage = (page) => {
@@ -650,6 +710,46 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     notify('success', creatorForm.id ? `تم تعديل بيانات صانع المحتوى: ${name}` : `تمت إضافة صانع المحتوى: ${name}`)
     setCreatorFormOpen(false)
     resetCreatorForm()
+  }
+
+  const saveStaffMember = (event) => {
+    event.preventDefault()
+    const name = (staffForm.name || '').trim()
+    if (!name) {
+      notify('error', 'يرجى كتابة اسم العضو أولاً.')
+      return
+    }
+
+    const normalizedUrl = (staffForm.url || '').trim()
+    const cleanUrl = normalizedUrl && !/^https?:\/\//i.test(normalizedUrl) ? `https://${normalizedUrl}` : normalizedUrl
+    const safeRole = (staffForm.group || staffForm.role || 'staff').trim() || 'staff'
+    const normalizedMember = {
+      id: staffForm.id || `staff-${Date.now()}`,
+      name,
+      username: (staffForm.username || staffForm.title || '').trim() || name,
+      title: (staffForm.title || '').trim() || safeRole,
+      role: safeRole,
+      group: safeRole,
+      account: (staffForm.account || '').trim(),
+      image: (staffForm.image || '').trim(),
+      url: cleanUrl,
+      visible: staffForm.visible !== false,
+      order: staffForm.id ? staff.find((item) => item.id === staffForm.id)?.order || staff.length + 1 : staff.length + 1
+    }
+
+    const nextStaff = staffForm.id
+      ? staff.map((item) => item.id === staffForm.id ? normalizedMember : item)
+      : [...staff, normalizedMember]
+
+    commitData(pages, users, creators, news, settings, shopProducts, nextStaff)
+    addAdminActivity(
+      staffForm.id ? 'تعديل عضو طاقم' : 'إضافة عضو طاقم',
+      `المستخدم ${user?.name || user?.username || 'Admin'} قام ${staffForm.id ? 'بتعديل' : 'بإضافة'} عضو الطاقم: ${name}`,
+      staffForm.id ? 'gold' : 'green'
+    )
+    notify('success', staffForm.id ? `تم تعديل عضو الطاقم: ${name}` : `تمت إضافة عضو الطاقم: ${name}`)
+    setStaffFormOpen(false)
+    resetStaffForm()
   }
 
   const savePage = (event) => {
@@ -816,6 +916,23 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     commitData(pages, users, nextCreators, news, settings)
     addAdminActivity('حذف صانع محتوى', `المستخدم ${user?.name || user?.username || 'Admin'} قام بحذف صانع المحتوى: ${creator?.name || 'غير معروف'}`, 'pink')
     notify('success', 'تم حذف صانع المحتوى بنجاح.')
+  }
+
+  const toggleStaffMember = (id) => {
+    const member = staff.find((item) => item.id === id)
+    const nextVisible = member?.visible === false
+    const nextStaff = staff.map((item) => item.id === id ? { ...item, visible: nextVisible } : item)
+    commitData(pages, users, creators, news, settings, shopProducts, nextStaff)
+    addAdminActivity(nextVisible ? 'إظهار عضو طاقم' : 'إخفاء عضو طاقم', `المستخدم ${user?.name || user?.username || 'Admin'} قام ${nextVisible ? 'بإظهار' : 'بإخفاء'} عضو الطاقم: ${member?.name || 'غير معروف'}`, nextVisible ? 'green' : 'pink')
+    notify('success', 'تم تحديث حالة عضو الطاقم بنجاح.')
+  }
+
+  const deleteStaffMember = (id) => {
+    const member = staff.find((item) => item.id === id)
+    const nextStaff = staff.filter((item) => item.id !== id)
+    commitData(pages, users, creators, news, settings, shopProducts, nextStaff)
+    addAdminActivity('حذف عضو طاقم', `المستخدم ${user?.name || user?.username || 'Admin'} قام بحذف عضو الطاقم: ${member?.name || 'غير معروف'}`, 'pink')
+    notify('success', 'تم حذف عضو الطاقم بنجاح.')
   }
 
   const movePage = (id, direction) => {
@@ -1019,6 +1136,8 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
       deleteUser(pendingDelete.id)
     } else if (pendingDelete.type === 'creator') {
       deleteCreator(pendingDelete.id)
+    } else if (pendingDelete.type === 'staff') {
+      deleteStaffMember(pendingDelete.id)
     } else if (pendingDelete.type === 'news') {
       deleteNewsItem(pendingDelete.id)
     } else if (pendingDelete.type === 'product') {
@@ -1064,6 +1183,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
             ['shop', 'المتجر'],
             ['users', 'الحسابات'],
             ['creators', 'صناع المحتوى'],
+            ['staff', 'الطاقم الإداري'],
             ['news', 'الأخبار'],
             ['activities', 'كل الأنشطة'],
             ['settings', 'الإعدادات']
@@ -1695,6 +1815,107 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                 </div>
               )) : (
                 <div className="empty-state">لا توجد نتائج مطابقة في صناع المحتوى.</div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {selectedTab === 'staff' && (
+          <div className="panel-card">
+            <div className="panel-title-row">
+              <h3>إدارة الطاقم الإداري</h3>
+              <button type="button" className="mini-btn" onClick={openCreateStaff}>+ إضافة</button>
+            </div>
+
+            <div className="panel-search">
+              <span className="panel-search-icon">⌕</span>
+              <input
+                type="search"
+                value={creatorSearch}
+                onChange={(event) => setCreatorSearch(event.target.value)}
+                placeholder="بحث في الطاقم: الاسم، المنصب، الحساب..."
+                aria-label="بحث في الطاقم الإداري"
+              />
+            </div>
+
+            {staffFormOpen && (
+              <form className="creator-editor" onSubmit={saveStaffMember}>
+                <div className="creator-editor-header">
+                  <h4>{staffForm.id ? 'تعديل عضو الطاقم' : 'إضافة عضو طاقم جديد'}</h4>
+                  <button type="button" className="mini-btn" onClick={() => { setStaffFormOpen(false); resetStaffForm() }}>إغلاق</button>
+                </div>
+
+                <div className="creator-form-grid">
+                  <label className="creator-field">
+                    <span>اسم العضو</span>
+                    <input type="text" value={staffForm.name} onChange={(event) => setStaffForm((current) => ({ ...current, name: event.target.value }))} placeholder="مثال: Power" />
+                  </label>
+
+                  <label className="creator-field">
+                    <span>اسم الحساب / النيش</span>
+                    <input type="text" value={staffForm.username} onChange={(event) => setStaffForm((current) => ({ ...current, username: event.target.value }))} placeholder="مثال: power" />
+                  </label>
+
+                  <label className="creator-field">
+                    <span>المنصب</span>
+                    <input type="text" value={staffForm.title} onChange={(event) => setStaffForm((current) => ({ ...current, title: event.target.value }))} placeholder="Owner / Founder / Moderator" />
+                  </label>
+
+                  <label className="creator-field">
+                    <span>المجموعة</span>
+                    <select value={staffForm.group || staffForm.role || 'staff'} onChange={(event) => setStaffForm((current) => ({ ...current, role: event.target.value, group: event.target.value }))}>
+                      <option value="owner">Owners</option>
+                      <option value="founder">Founders</option>
+                      <option value="staff">Staff</option>
+                    </select>
+                  </label>
+
+                  <label className="creator-field">
+                    <span>الحساب أو القناة</span>
+                    <input type="text" value={staffForm.account} onChange={(event) => setStaffForm((current) => ({ ...current, account: event.target.value }))} placeholder="مثال: Discord / Steam / Email" />
+                  </label>
+
+                  <label className="creator-field">
+                    <span>رابط الصورة</span>
+                    <input type="url" value={staffForm.image} onChange={(event) => setStaffForm((current) => ({ ...current, image: event.target.value }))} placeholder="https://..." />
+                  </label>
+
+                  <label className="creator-field">
+                    <span>رابط الملف الشخصي</span>
+                    <input type="url" value={staffForm.url} onChange={(event) => setStaffForm((current) => ({ ...current, url: event.target.value }))} placeholder="https://..." />
+                  </label>
+                </div>
+
+                <label className="creator-checkbox">
+                  <input type="checkbox" checked={staffForm.visible !== false} onChange={(event) => setStaffForm((current) => ({ ...current, visible: event.target.checked }))} />
+                  <span>مرئي في الصفحة العامة</span>
+                </label>
+
+                <div className="creator-form-actions">
+                  <button type="submit" className="mini-btn">{staffForm.id ? 'حفظ التعديل' : 'إضافة الآن'}</button>
+                  <button type="button" className="mini-btn danger" onClick={() => { setStaffFormOpen(false); resetStaffForm() }}>إلغاء</button>
+                </div>
+              </form>
+            )}
+
+            <div className="list-table">
+              {filteredStaff.length ? filteredStaff.map((member) => (
+                <div key={member.id} className="list-row">
+                  <div className="creator-item-info">
+                    <div className="creator-mini-avatar" style={{ backgroundImage: member.image ? `url(${member.image})` : 'linear-gradient(135deg, #7c3aed, #2a6bff)' }} />
+                    <div>
+                      <strong>{member.name}</strong>
+                      <small>{member.title || member.role || 'Staff'} • {member.account || member.username || '—'}</small>
+                    </div>
+                  </div>
+                  <div className="row-actions">
+                    <button type="button" className="mini-btn" onClick={() => openEditStaff(member)}>تعديل</button>
+                    <button type="button" className="mini-btn" onClick={() => toggleStaffMember(member.id)}>{member.visible === false ? 'إظهار' : 'إخفاء'}</button>
+                    <button type="button" className="mini-btn danger" onClick={() => setPendingDelete({ type: 'staff', id: member.id, name: member.name })}>حذف</button>
+                  </div>
+                </div>
+              )) : (
+                <div className="empty-state">لا توجد نتائج مطابقة في الطاقم الإداري.</div>
               )}
             </div>
           </div>

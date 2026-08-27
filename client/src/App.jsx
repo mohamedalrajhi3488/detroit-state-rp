@@ -5,6 +5,7 @@ import Hero from './components/Hero'
 import Features from './components/Features'
 import Shop from './components/Shop'
 import Streamers from './components/Streamers'
+import StaffPage from './components/StaffPage'
 import Jobs from './components/Jobs'
 import Rules from './components/Rules'
 import Faq from './components/Faq'
@@ -19,12 +20,14 @@ import {
   getSettingsFromFirestore,
   getCreatorsFromFirestore,
   getUsersFromFirestore,
+  getStaffFromFirestore,
   saveActivityToFirestore,
   saveCreatorsToFirestore,
   saveNewsToFirestore,
   savePagesToFirestore,
   saveSettingsToFirestore,
   saveShopProductsToFirestore,
+  saveStaffToFirestore,
   saveUserToFirestore,
   saveUsersToFirestore,
   getNewsFromFirestore,
@@ -99,8 +102,27 @@ const defaultSettings = {
 }
 
 const defaultCreators = []
+const defaultStaff = []
 
 const defaultShopProducts = []
+
+const normalizeStaff = (staff = []) => {
+  if (!Array.isArray(staff)) return []
+
+  return staff.map((member, index) => ({
+    id: member.id || `staff-${Date.now()}-${index}`,
+    name: member.name || `Staff ${index + 1}`,
+    username: member.username || member.title || member.role || 'Staff',
+    title: member.title || member.role || member.position || 'Staff',
+    role: member.role || member.group || 'staff',
+    group: member.group || member.role || 'staff',
+    account: member.account || '',
+    image: member.image || '',
+    url: member.url || '',
+    visible: member.visible !== false,
+    order: member.order || index + 1
+  }))
+}
 
 const normalizeFooterQuickLinks = (links = []) => {
   if (!Array.isArray(links)) return []
@@ -269,7 +291,7 @@ const getSavedData = () => {
 
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    if (!saved) return { pages: defaultPages, users: [], settings: defaultSettings, creators: defaultCreators, news: [] }
+    if (!saved) return { pages: defaultPages, users: [], settings: defaultSettings, creators: defaultCreators, news: [], staff: defaultStaff }
 
     const parsed = JSON.parse(saved)
     const normalizedSettings = { ...defaultSettings, ...(parsed.settings || {}) }
@@ -290,10 +312,11 @@ const getSavedData = () => {
         order: creator.order || index + 1
       })),
       news: normalizeNews(parsed.news || []),
-      products: Array.isArray(parsed.products) && parsed.products.length ? parsed.products : defaultShopProducts
+      products: Array.isArray(parsed.products) && parsed.products.length ? parsed.products : defaultShopProducts,
+      staff: normalizeStaff(parsed.staff || defaultStaff)
     }
   } catch {
-    return { pages: defaultPages, users: [], settings: defaultSettings, creators: defaultCreators, news: [], products: defaultShopProducts }
+    return { pages: defaultPages, users: [], settings: defaultSettings, creators: defaultCreators, news: [], products: defaultShopProducts, staff: defaultStaff }
   }
 }
 
@@ -455,11 +478,12 @@ export default function App() {
           getPagesFromFirestore(),
           getCreatorsFromFirestore(),
           getNewsFromFirestore(),
-          getShopProductsFromFirestore()
+          getShopProductsFromFirestore(),
+          getStaffFromFirestore()
         ])
 
-        const [settings, pages, creators, news, products] = firestoreData
-        const hasRemoteData = Boolean(settings) || pages.length > 0 || creators.length > 0 || news.length > 0 || products.length > 0
+        const [settings, pages, creators, news, products, staff] = firestoreData
+        const hasRemoteData = Boolean(settings) || pages.length > 0 || creators.length > 0 || news.length > 0 || products.length > 0 || staff.length > 0
 
         if (hasRemoteData) {
           siteDataHydratedRef.current = true
@@ -469,7 +493,8 @@ export default function App() {
             pages: normalizePages(pages.length ? pages : current.pages || defaultPages),
             creators: creators.length ? creators : current.creators || defaultCreators,
             news: normalizeNews(news.length ? news : current.news || []),
-            products: products.length ? products : current.products || defaultShopProducts
+            products: products.length ? products : current.products || defaultShopProducts,
+            staff: staff.length ? normalizeStaff(staff) : current.staff || defaultStaff
           }))
           return
         }
@@ -482,6 +507,7 @@ export default function App() {
         Array.isArray(savedLocal.pages) && savedLocal.pages.length > 0 ||
         Array.isArray(savedLocal.creators) && savedLocal.creators.length > 0 ||
         Array.isArray(savedLocal.news) && savedLocal.news.length > 0 ||
+        Array.isArray(savedLocal.staff) && savedLocal.staff.length > 0 ||
         savedLocal.settings
       )) {
         siteDataHydratedRef.current = true
@@ -1098,6 +1124,10 @@ export default function App() {
       return <Shop products={siteData.products || defaultShopProducts} />
     }
 
+    if (currentPage === 'staff' || normalizedPageKey === 'staff') {
+      return <StaffPage staff={siteData.staff || []} />
+    }
+
     if (currentPage === 'home' || !currentPage) {
       return (
         <>
@@ -1128,6 +1158,7 @@ export default function App() {
 
     if (page.type === 'shop') return <Shop products={siteData.products || defaultShopProducts} />
     if (page.type === 'jobs') return <Jobs />
+    if (page.type === 'staff') return <StaffPage staff={siteData.staff || []} />
     if (page.type === 'rules') return <Rules />
     if (page.type === 'activities') {
       return (
