@@ -35,11 +35,6 @@ const formatMemberLabel = (member) => {
   return raw || 'مستخدم'
 }
 
-const formatMemberDetail = (value) => {
-  const detail = String(value || '').trim()
-  return detail.toLowerCase() === 'founder' || detail.toLowerCase() === 'founders' ? 'Developer' : detail
-}
-
 const normalizeSocialLinks = (member) => {
   const links = Array.isArray(member?.socials) ? member.socials : []
   const legacyLinks = Array.isArray(member?.socialLinks) ? member.socialLinks : []
@@ -68,6 +63,13 @@ const getSocialIcon = (url) => {
   return FaLink
 }
 
+const getProfileUrl = (member) => {
+  const value = String(member?.profileUrl || member?.profileLink || member?.url || '').trim()
+  if (!value) return null
+  const normalized = /^https?:\/\//i.test(value) ? value : `https://${value}`
+  return /^https?:\/\//i.test(normalized) ? normalized : null
+}
+
 export default function StaffPage({ staff = [] }) {
   const visibleMembers = [...staff]
     .filter((member) => member.visible !== false)
@@ -82,7 +84,7 @@ export default function StaffPage({ staff = [] }) {
     const safeImage = member.image || '/img/DS.webp'
     const roleLabel = formatMemberLabel(member)
     const socialLinks = normalizeSocialLinks(member)
-    const profileUrl = member.url && /^https?:\/\//i.test(member.url) ? member.url : null
+    const profileUrl = getProfileUrl(member)
     const avatarStyle = member.image
       ? { backgroundImage: `url(${safeImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }
       : { background: 'linear-gradient(135deg, rgba(157, 77, 255, 0.22), rgba(17, 26, 38, 0.9))' }
@@ -97,8 +99,6 @@ export default function StaffPage({ staff = [] }) {
         <div className="staff-meta streamer-meta">
           {profileUrl ? <a href={profileUrl} target="_blank" rel="noreferrer" className="creator-link"><strong>{member.name || 'Unnamed'}</strong></a> : <strong>{member.name || 'Unnamed'}</strong>}
           <span className="staff-role">{roleLabel}</span>
-          {formatMemberDetail(member.username) && formatMemberDetail(member.username) !== member.name && <small>{formatMemberDetail(member.username)}</small>}
-          {formatMemberDetail(member.account) && <small>{formatMemberDetail(member.account)}</small>}
           {socialLinks.length > 0 && (
             <div className="staff-socials" aria-label={`حسابات ${member.name || 'العضو'}`}>
               {socialLinks.map(({ url, label }, socialIndex) => {
@@ -147,10 +147,10 @@ export default function StaffPage({ staff = [] }) {
 
   return (
     <section className="staff-page-shell">
-      <div className="staff-page-hero">
+      <div className="staff-page-hero hero-shell">
+        <div className="staff-page-backdrop hero-background" aria-hidden="true" />
         <div className="staff-page-hero-inner">
-          <span className="eyebrow">DETROIT STATE</span>
-          <h1>الفريق وراء ديترويت </h1>
+          <h1 className="staff-page-title">الفريق وراء ديترويت </h1>
           <p>تعرفوا على الفريق الإداري والتقني الذي يبني لكم أفضل تجربة في ديترويت .</p>
         </div>
       </div>

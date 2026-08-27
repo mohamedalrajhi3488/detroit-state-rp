@@ -995,6 +995,22 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     notify('success', 'تم تغيير ترتيب صانعي المحتوى بنجاح.')
   }
 
+  const moveStaffMember = (id, direction) => {
+    const index = staff.findIndex((member) => member.id === id)
+    if (index < 0) return
+
+    const nextIndex = direction === 'up' ? index - 1 : index + 1
+    if (nextIndex < 0 || nextIndex >= staff.length) return
+
+    const nextStaff = [...staff]
+    const [item] = nextStaff.splice(index, 1)
+    nextStaff.splice(nextIndex, 0, item)
+    const reordered = nextStaff.map((member, orderIndex) => ({ ...member, order: orderIndex + 1 }))
+    commitData(pages, users, creators, news, settings, shopProducts, reordered)
+    addAdminActivity('تغيير ترتيب الطاقم', `المستخدم ${user?.name || user?.username || 'Admin'} قام بتغيير ترتيب عضو الطاقم: ${item?.name || 'غير معروف'}`, 'blue')
+    notify('success', 'تم تغيير ترتيب الطاقم الإداري بنجاح.')
+  }
+
   const moveProduct = (id, direction) => {
     const index = shopProducts.findIndex((p) => p.id === id)
     if (index < 0) return
@@ -1942,6 +1958,8 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                     </div>
                   </div>
                   <div className="row-actions">
+                    <button type="button" className="mini-btn" onClick={() => moveStaffMember(member.id, 'up')} disabled={staff.findIndex((item) => item.id === member.id) === 0} aria-label={`رفع ${member.name}`}>↑</button>
+                    <button type="button" className="mini-btn" onClick={() => moveStaffMember(member.id, 'down')} disabled={staff.findIndex((item) => item.id === member.id) === staff.length - 1} aria-label={`خفض ${member.name}`}>↓</button>
                     <button type="button" className="mini-btn" onClick={() => openEditStaff(member)}>تعديل</button>
                     <button type="button" className="mini-btn" onClick={() => toggleStaffMember(member.id)}>{member.visible === false ? 'إظهار' : 'إخفاء'}</button>
                     <button type="button" className="mini-btn danger" onClick={() => setPendingDelete({ type: 'staff', id: member.id, name: member.name })}>حذف</button>
