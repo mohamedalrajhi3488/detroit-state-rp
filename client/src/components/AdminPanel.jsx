@@ -1913,7 +1913,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                   name="footerQuickLinks"
                   defaultValue={Array.isArray(settings.footerQuickLinks)
                     ? settings.footerQuickLinks.map((item) => `${item.label}|${item.href}`).join('\n')
-                    : 'القوانين العامة|#/rules\nالوظائف|#/jobs\nالدعم الفني|#/support\nالمتجر|https://detroit-state-rp.tebex.io/'}
+                    : 'القوانين العامة|#/rules\nالوظائف|#/jobs\nالأخبار|#/news\nالمتجر|https://detroit-state-rp.tebex.io/'}
                   rows="6"
                 />
               </label>

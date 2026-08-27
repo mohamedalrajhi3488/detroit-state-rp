@@ -1,16 +1,17 @@
 import React from 'react'
 import {
+  FaDiscord,
   FaFacebookF,
   FaTiktok,
-  FaDiscord,
+  FaXTwitter,
   FaYoutube
 } from 'react-icons/fa6'
 
 const defaultQuickLinks = [
-  { label: 'القوانين العامة', href: '#/rules' },
-  { label: 'الوظائف', href: '#/jobs' },
-  { label: 'الدعم الفني', href: '#/support' },
-  { label: 'المتجر', href: 'https://detroit-state-rp.tebex.io/', external: true }
+  { label: 'الرئيسية', href: '#/' },
+  { label: 'القوانين', href: '#/rules' },
+  { label: 'صفحات المجتمع', href: '#/streamers' },
+  { label: 'التقييمات', href: '#/faq' }
 ]
 
 const defaultSocialLinks = [
@@ -26,8 +27,9 @@ const detectSocialIcon = (href = '') => {
   if (normalized.includes('facebook')) return 'facebook'
   if (normalized.includes('tiktok')) return 'tiktok'
   if (normalized.includes('discord')) return 'discord'
-  if (normalized.includes('youtube')) return 'youtube'
-  return 'discord'
+  if (normalized.includes('youtube') || normalized.includes('youtu.be')) return 'youtube'
+  if (normalized.includes('x.com') || normalized.includes('twitter')) return 'x'
+  return 'facebook'
 }
 
 const getSocialIcon = (iconName) => {
@@ -42,8 +44,10 @@ const getSocialIcon = (iconName) => {
       return <FaDiscord {...iconProps} />
     case 'youtube':
       return <FaYoutube {...iconProps} />
+    case 'x':
+      return <FaXTwitter {...iconProps} />
     default:
-      return <FaDiscord {...iconProps} />
+      return <FaFacebookF {...iconProps} />
   }
 }
 
@@ -74,9 +78,9 @@ export default function Footer({ settings = {} }) {
   const quickLinks = normalizeQuickLinks(settings.footerQuickLinks)
   const socialLinks = normalizeSocialLinks(settings.footerSocials)
   const footerLogo = settings.footerLogo || '/img/DS.webp'
-  const footerTitle = settings.footerTitle || settings.siteName || 'DETROIT STATE'
+  const footerTitle = settings.footerTitle || settings.siteName || 'مدينة العدالة'
   const footerDescription = settings.footerDescription || 'مجتمعنا هو مكان للعب والمرح والتفاعل مع المجتمع، حيث نلتقي للعب، والتنافس، وتبادل الخبرات داخل بيئة نظيفة واحترافية.'
-  const footerCopyright = settings.footerCopyright || `${settings.siteName || 'Detroit State'} Community. All rights reserved 2026`
+  const footerCopyright = settings.footerCopyright || 'JUSTICE CITY DEV TEAM • 2026'
   const footerCopyrightLines = footerCopyright
     .split('\n')
     .map((line) => line.trim())
@@ -84,19 +88,24 @@ export default function Footer({ settings = {} }) {
 
   return (
     <footer className="newpixel-footer">
-      <div className="newpixel-footer-grid">
-        <div className="newpixel-footer-section newpixel-footer-branding">
+      <div className="newpixel-footer-inner">
+        <div className="newpixel-footer-branding">
           <div className="newpixel-brand-row">
             <span className="newpixel-brand-mark">
               <img src={footerLogo} alt="DS logo" />
             </span>
-            <span className="newpixel-brand-title">{footerTitle}</span>
           </div>
-          <p>{footerDescription}</p>
         </div>
 
-        <div className="newpixel-footer-section newpixel-footer-links">
-          <h3>روابط سريعة</h3>
+        <div className="newpixel-socials">
+          {socialLinks.map((item) => (
+            <a key={`${item.label}-${item.href}`} href={item.href} target="_blank" rel="noreferrer" aria-label={item.label} title={item.label}>
+              {getSocialIcon(item.icon)}
+            </a>
+          ))}
+        </div>
+
+        <div className="newpixel-footer-links">
           <ul>
             {quickLinks.map((link) => (
               <li key={`${link.label}-${link.href}`}>
@@ -108,27 +117,16 @@ export default function Footer({ settings = {} }) {
           </ul>
         </div>
 
-        <div className="newpixel-footer-section newpixel-footer-socials">
-          <h3>تواصل معنا</h3>
-          <div className="newpixel-socials">
-            {socialLinks.map((item) => (
-              <a key={`${item.label}-${item.href}`} href={item.href} target="_blank" rel="noreferrer" aria-label={item.label} title={item.label}>
-                {getSocialIcon(item.icon)}
-              </a>
-            ))}
+        <div className="newpixel-footer-meta">
+          <div className="newpixel-copyright">
+            {footerCopyrightLines.length ? (
+              footerCopyrightLines.map((line, index) => (
+                <span key={`${line}-${index}`} className="copyright-line">{line}</span>
+              ))
+            ) : (
+              <span className="copyright-line">{footerCopyright}</span>
+            )}
           </div>
-        </div>
-      </div>
-
-      <div className="newpixel-footer-meta">
-        <div className="newpixel-copyright">
-          {footerCopyrightLines.length ? (
-            footerCopyrightLines.map((line, index) => (
-              <span key={`${line}-${index}`} className="copyright-line">{line}</span>
-            ))
-          ) : (
-            <span className="copyright-line">{footerCopyright}</span>
-          )}
         </div>
       </div>
     </footer>

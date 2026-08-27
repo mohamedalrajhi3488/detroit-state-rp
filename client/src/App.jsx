@@ -87,7 +87,7 @@ const defaultSettings = {
   footerQuickLinks: [
     { label: 'القوانين العامة', href: '#/rules' },
     { label: 'الوظائف', href: '#/jobs' },
-    { label: 'الدعم الفني', href: '#/support' },
+    { label: 'الأخبار', href: '#/news' },
     { label: 'المتجر', href: 'https://detroit-state-rp.tebex.io/', external: true }
   ],
   footerSocials: [
@@ -101,6 +101,26 @@ const defaultSettings = {
 const defaultCreators = []
 
 const defaultShopProducts = []
+
+const normalizeFooterQuickLinks = (links = []) => {
+  if (!Array.isArray(links)) return []
+
+  return links.map((item) => {
+    const label = typeof item?.label === 'string' ? item.label.trim() : ''
+    const href = typeof item?.href === 'string' ? item.href.trim() : '#'
+
+    if (label === 'الدعم الفني' || href === '#/support' || href === '/support') {
+      return { ...item, label: 'الأخبار', href: '#/news', external: false }
+    }
+
+    return {
+      ...item,
+      label: label || 'Link',
+      href: href || '#',
+      external: !!item?.external
+    }
+  })
+}
 
 const arabicDateDigits = (value) => toLatinDigits(String(value ?? ''))
 
@@ -252,10 +272,13 @@ const getSavedData = () => {
     if (!saved) return { pages: defaultPages, users: [], settings: defaultSettings, creators: defaultCreators, news: [] }
 
     const parsed = JSON.parse(saved)
+    const normalizedSettings = { ...defaultSettings, ...(parsed.settings || {}) }
+    normalizedSettings.footerQuickLinks = normalizeFooterQuickLinks(normalizedSettings.footerQuickLinks)
+
     return {
       pages: normalizePages(parsed.pages),
       users: sanitizeUsers(parsed.users),
-      settings: { ...defaultSettings, ...(parsed.settings || {}) },
+      settings: normalizedSettings,
       creators: (parsed.creators || defaultCreators).map((creator, index) => ({
         id: creator.id || Date.now() + index,
         name: creator.name || `Creator ${index + 1}`,
