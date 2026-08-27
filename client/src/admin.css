@@ -807,7 +807,8 @@
 }
 
 .creator-field input,
-.creator-field textarea {
+.creator-field textarea,
+.creator-field select {
   width: 100%;
   padding: 12px 14px;
   border-radius: 12px;
@@ -818,6 +819,18 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
+.creator-field select {
+  min-height: 48px;
+  color-scheme: dark;
+  cursor: pointer;
+  appearance: auto;
+}
+
+.creator-field select option {
+  background: #141322;
+  color: #f5f2ff;
+}
+
 .creator-field textarea {
   min-height: 120px;
   resize: vertical;
@@ -825,7 +838,8 @@
 }
 
 .creator-field input:focus,
-.creator-field textarea:focus {
+.creator-field textarea:focus,
+.creator-field select:focus {
   outline: none;
   border-color: rgba(168, 122, 255, 0.8);
   box-shadow: 0 0 0 3px rgba(168, 122, 255, 0.14);
