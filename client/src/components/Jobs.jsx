@@ -3,6 +3,8 @@ import { FaDiscord } from 'react-icons/fa6'
 
 export default function Jobs() {
   const [discordMembers, setDiscordMembers] = useState('0')
+  const [serverStatus, setServerStatus] = useState('restarting')
+  const [onlinePlayers, setOnlinePlayers] = useState(0)
 
   useEffect(() => {
     let mounted = true
@@ -31,6 +33,43 @@ export default function Jobs() {
     }
   }, [])
 
+  useEffect(() => {
+    let mounted = true
+
+    const loadServerStatus = async () => {
+      try {
+        const response = await fetch('/api/server-status', { cache: 'no-store' })
+        const data = await response.json().catch(() => ({}))
+        if (!response.ok) {
+          if (mounted) setServerStatus(response.status === 404 ? 'offline' : 'restarting')
+          return
+        }
+
+        const count = Number(data?.clients ?? (Array.isArray(data?.players) ? data.players.length : 0))
+        if (mounted) {
+          setOnlinePlayers(Number.isFinite(count) ? count : 0)
+          setServerStatus(data?.status === 'online' ? 'online' : 'restarting')
+        }
+      } catch {
+        if (mounted) setServerStatus('restarting')
+      }
+    }
+
+    loadServerStatus()
+    const timer = setInterval(loadServerStatus, 30000)
+
+    return () => {
+      mounted = false
+      clearInterval(timer)
+    }
+  }, [])
+
+  const serverStatusLabel = {
+    online: 'متصل الآن',
+    offline: 'غير متصل',
+    restarting: 'إعادة التشغيل'
+  }[serverStatus]
+
   return (
     <section id="jobs" className="section-block promo-section">
       <div className="promo-box">
@@ -54,10 +93,10 @@ export default function Jobs() {
 
           <div className="promo-stat promo-stat-right">
             <span className="promo-stat-label promo-live-label">
-              <span className="promo-live-dot" aria-hidden="true" />
-              متصل الآن
+              <span className={`promo-live-dot is-${serverStatus}`} aria-hidden="true" />
+              {serverStatusLabel}
             </span>
-            <strong>0</strong>
+            <strong>{serverStatus === 'online' ? onlinePlayers : '—'}</strong>
             <span className="promo-stat-tag">LIVE SESSION</span>
           </div>
         </div>

@@ -137,8 +137,22 @@ app.get('/api/server-status', async (req, res) => {
     }
 
     const payload = response.data?.Data || response.data?.data || response.data;
+    const directEndpoint = Array.isArray(payload?.connectEndPoints) ? payload.connectEndPoints[0] : '';
+    if (directEndpoint && /^[\w.-]+:\d+$/.test(directEndpoint)) {
+      try {
+        const directResponse = await axios.get(`http://${directEndpoint}/players.json`, {
+          timeout: 8000,
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        const directPlayers = Array.isArray(directResponse.data) ? directResponse.data : [];
+        return res.json({ status: 'online', clients: directPlayers.length, players: directPlayers });
+      } catch {
+        // Fall back to the CFX listing when the server's direct endpoint is unavailable.
+      }
+    }
+
     const lastSeenAt = Date.parse(payload?.lastSeen || '');
-    const isRecentlySeen = Number.isFinite(lastSeenAt) && (Date.now() - lastSeenAt) <= 2 * 60 * 1000;
+    const isRecentlySeen = Number.isFinite(lastSeenAt) && (Date.now() - lastSeenAt) <= 10 * 60 * 1000;
     if (!isRecentlySeen) {
       return res.status(404).json({ status: 'offline', error: 'server_not_recently_seen' });
     }
