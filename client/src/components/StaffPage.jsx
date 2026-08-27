@@ -10,9 +10,9 @@ const groupMembersByRole = (members = []) => {
   for (const member of members) {
     const role = String(member?.group || member?.role || 'staff').trim().toLowerCase()
 
-    if (role === 'owner' || role === 'owners' || role === 'mt owners' || role === 'owners team') {
+    if (role === 'owner' || role === 'owners' || role === 'DS owners' || role === 'owners team') {
       groups.owners.push(member)
-    } else if (role === 'founder' || role === 'founders' || role === 'mt founders' || role === 'founders team') {
+    } else if (role === 'founder' || role === 'founders' || role === 'DS founders' || role === 'founders team') {
       groups.founders.push(member)
     } else {
       groups.staff.push(member)
@@ -110,14 +110,14 @@ export default function StaffPage({ staff = [] }) {
       <div className="staff-page-hero">
         <div className="staff-page-hero-inner">
           <span className="eyebrow">DETROIT STATE</span>
-          <h1>الفريق والرعاية</h1>
-          <p>نحن فريق مخصص لضمان تجربة ممتعة وآمنة داخل المجتمع.</p>
+          <h1>الفريق وراء ديترويت </h1>
+          <p>تعرفوا على الفريق الإداري والتقني الذي يبني لكم أفضل تجربة في ديترويت .</p>
         </div>
       </div>
 
-      {renderSection('MT Owners', ownerCards, 'owners')}
-      {renderSection('MT Founders', founderCards, 'founders')}
-      {renderSection('Staff', staffCards, 'staff')}
+      {renderSection('DS Owners', ownerCards, 'owners')}
+      {renderSection('DS Founders', founderCards, 'founders')}
+      {renderSection('DS Staff', staffCards, 'staff')}
     </section>
   )
 }
