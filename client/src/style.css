@@ -1482,7 +1482,7 @@ img { max-width: 100%; display: block; }
 }
 
 .hero-live-text {
-  order: 1;
+  order: 3;
 }
 
 .hero-live-count {
@@ -1492,7 +1492,7 @@ img { max-width: 100%; display: block; }
 }
 
 .hero-live-dot {
-  order: 3;
+  order: 1;
   width: 9px;
   height: 9px;
   border-radius: 50%;
