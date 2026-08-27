@@ -109,7 +109,7 @@ export default function StaffPage({ staff = [] }) {
     <section className="staff-page-shell">
       <div className="staff-page-hero">
         <div className="staff-page-hero-inner">
-          <span className="eyebrow">MYSTERY TOWN</span>
+          <span className="eyebrow">DETROIT STATE</span>
           <h1>الفريق والرعاية</h1>
           <p>نحن فريق مخصص لضمان تجربة ممتعة وآمنة داخل المجتمع.</p>
         </div>
