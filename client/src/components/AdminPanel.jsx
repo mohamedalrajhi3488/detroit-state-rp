@@ -404,6 +404,26 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     })
   }, [creators, creatorSearch])
 
+  const filteredStaff = useMemo(() => {
+    const query = creatorSearch.trim().toLowerCase()
+    if (!query) return staff
+
+    return staff.filter((member) => {
+      const haystack = [
+        member.name,
+        member.username,
+        member.title,
+        member.role,
+        member.account,
+        member.url,
+        member.id,
+        member.visible === false ? 'hidden' : 'visible'
+      ].filter(Boolean).join(' ').toLowerCase()
+
+      return haystack.includes(query)
+    })
+  }, [staff, creatorSearch])
+
   const filteredActivities = useMemo(() => {
     const query = activitySearch.trim().toLowerCase()
     if (!query) return activityLog
