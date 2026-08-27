@@ -125,32 +125,33 @@ if (fs.existsSync(clientDist)) {
 
 app.get('/api/server-status', async (req, res) => {
   try {
-    const response = await axios.get(`https://servers-frontend.fivem.net/api/servers/single/${SERVER_CODE}`, {
+    const response = await axios.get(`https://frontend.cfx-services.net/api/servers/single/${SERVER_CODE}`, {
       timeout: 15000,
       headers: {
         'User-Agent': 'Mozilla/5.0'
-      }
+      },
+      validateStatus: (status) => status < 500
     });
-    res.json({ ...response.data, status: 'online' });
-  } catch (error) {
-    // The single-server endpoint expects an internal server id, not a cfx.re join code.
-    // Use the join page as a fallback so a healthy server is not shown as restarting.
-    try {
-      const joinResponse = await axios.get(`https://cfx.re/join/${SERVER_CODE}`, {
-        timeout: 15000,
-        headers: { 'User-Agent': 'Mozilla/5.0' },
-        validateStatus: (status) => status < 500
-      });
-
-      if (joinResponse.status === 200) {
-        return res.json({ status: 'online', clients: 0, players: [] });
-      }
-
+    if (response.status === 404) {
       return res.status(404).json({ status: 'offline', error: 'server_not_found' });
-    } catch (fallbackError) {
-      console.error('FiveM status fetch failed:', fallbackError.message);
-      return res.status(502).json({ status: 'restarting', error: 'server_status_unavailable' });
     }
+
+    const payload = response.data?.Data || response.data?.data || response.data;
+    const lastSeenAt = Date.parse(payload?.lastSeen || '');
+    const isRecentlySeen = Number.isFinite(lastSeenAt) && (Date.now() - lastSeenAt) <= 2 * 60 * 1000;
+    if (!isRecentlySeen) {
+      return res.status(404).json({ status: 'offline', error: 'server_not_recently_seen' });
+    }
+
+    const clients = Number(payload?.clients);
+    return res.json({
+      status: 'online',
+      clients: Number.isFinite(clients) ? clients : 0,
+      players: Array.isArray(payload?.players) ? payload.players : []
+    });
+  } catch (error) {
+    console.error('FiveM status fetch failed:', error.message);
+    return res.status(502).json({ status: 'restarting', error: 'server_status_unavailable' });
   }
 });
 
