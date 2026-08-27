@@ -194,6 +194,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     role: 'staff',
     group: 'staff',
     account: '',
+    socialLinks: '',
     image: '',
     url: '',
     visible: true
@@ -661,6 +662,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
       role: member.role || member.group || 'staff',
       group: member.group || member.role || 'staff',
       account: member.account || '',
+      socialLinks: (Array.isArray(member.socials) ? member.socials : []).map((item) => item.url || item.href || item).join('\n'),
       image: member.image || '',
       url: member.url || '',
       visible: member.visible !== false
@@ -743,6 +745,11 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     const normalizedUrl = (staffForm.url || '').trim()
     const cleanUrl = normalizedUrl && !/^https?:\/\//i.test(normalizedUrl) ? `https://${normalizedUrl}` : normalizedUrl
     const safeRole = (staffForm.group || staffForm.role || 'staff').trim() || 'staff'
+    const socials = String(staffForm.socialLinks || '')
+      .split(/[,\n]/)
+      .map((item) => item.trim())
+      .filter((item) => item && /^https?:\/\//i.test(item))
+      .map((url) => ({ url }))
     const normalizedMember = {
       id: staffForm.id || `staff-${Date.now()}`,
       name,
@@ -751,6 +758,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
       role: safeRole,
       group: safeRole,
       account: (staffForm.account || '').trim(),
+      socials,
       image: (staffForm.image || '').trim(),
       url: cleanUrl,
       visible: staffForm.visible !== false,
@@ -1903,6 +1911,11 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                   <label className="creator-field">
                     <span>رابط الملف الشخصي</span>
                     <input type="url" value={staffForm.url} onChange={(event) => setStaffForm((current) => ({ ...current, url: event.target.value }))} placeholder="https://..." />
+                  </label>
+
+                  <label className="creator-field creator-field-wide">
+                    <span>حسابات السوشال ميديا</span>
+                    <textarea value={staffForm.socialLinks} onChange={(event) => setStaffForm((current) => ({ ...current, socialLinks: event.target.value }))} placeholder="ضع رابطًا واحدًا في كل سطر: Discord, Instagram, X..." rows="3" />
                   </label>
                 </div>
 

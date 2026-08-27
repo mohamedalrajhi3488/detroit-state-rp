@@ -1,4 +1,5 @@
 import React from 'react'
+import { FaDiscord, FaInstagram, FaTiktok, FaTwitch, FaYoutube, FaXTwitter, FaLink } from 'react-icons/fa6'
 
 const groupMembersByRole = (members = []) => {
   const groups = {
@@ -33,6 +34,33 @@ const formatMemberLabel = (member) => {
   return raw || 'مستخدم'
 }
 
+const normalizeSocialLinks = (member) => {
+  const links = Array.isArray(member?.socials) ? member.socials : []
+  const legacyLinks = Array.isArray(member?.socialLinks) ? member.socialLinks : []
+  const allLinks = [...links, ...legacyLinks]
+
+  if (member?.socialUrl) allLinks.push({ url: member.socialUrl })
+
+  return allLinks
+    .map((item) => {
+      const url = typeof item === 'string' ? item.trim() : String(item?.url || item?.href || '').trim()
+      if (!/^https?:\/\//i.test(url)) return null
+      return { url, label: typeof item === 'string' ? '' : item?.label || '' }
+    })
+    .filter(Boolean)
+}
+
+const getSocialIcon = (url) => {
+  const value = url.toLowerCase()
+  if (value.includes('discord')) return FaDiscord
+  if (value.includes('instagram')) return FaInstagram
+  if (value.includes('tiktok')) return FaTiktok
+  if (value.includes('twitch')) return FaTwitch
+  if (value.includes('youtube')) return FaYoutube
+  if (value.includes('twitter') || value.includes('x.com')) return FaXTwitter
+  return FaLink
+}
+
 export default function StaffPage({ staff = [] }) {
   const visibleMembers = [...staff]
     .filter((member) => member.visible !== false)
@@ -46,11 +74,10 @@ export default function StaffPage({ staff = [] }) {
   const renderCard = (member, index) => {
     const safeImage = member.image || '/img/DS.webp'
     const roleLabel = formatMemberLabel(member)
+    const socialLinks = normalizeSocialLinks(member)
     const avatarStyle = member.image
       ? { backgroundImage: `url(${safeImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }
       : { background: 'linear-gradient(135deg, rgba(157, 77, 255, 0.22), rgba(17, 26, 38, 0.9))' }
-
-    const link = member.url && /^https?:\/\//i.test(member.url) ? member.url : null
 
     const cardContent = (
       <>
@@ -59,21 +86,24 @@ export default function StaffPage({ staff = [] }) {
         </div>
         <div className="staff-meta">
           <strong>{member.name || 'Unnamed'}</strong>
-          <span>{member.username || roleLabel}</span>
+          <span className="staff-role">{roleLabel}</span>
+          {member.username && member.username !== member.name && <small>{member.username}</small>}
           {member.account && <small>{member.account}</small>}
+          {socialLinks.length > 0 && (
+            <div className="staff-socials" aria-label={`حسابات ${member.name || 'العضو'}`}>
+              {socialLinks.map(({ url, label }, socialIndex) => {
+                const Icon = getSocialIcon(url)
+                return <a key={`${url}-${socialIndex}`} href={url} target="_blank" rel="noreferrer" aria-label={label || url} onClick={(event) => event.stopPropagation()}><Icon /></a>
+              })}
+            </div>
+          )}
         </div>
       </>
     )
 
     return (
       <div className="staff-card" key={`${member.id || member.name || 'staff'}-${index}`}>
-        {link ? (
-          <a href={link} target="_blank" rel="noreferrer" className="staff-link">
-            {cardContent}
-          </a>
-        ) : (
-          cardContent
-        )}
+        <div className="staff-link">{cardContent}</div>
       </div>
     )
   }
@@ -82,8 +112,9 @@ export default function StaffPage({ staff = [] }) {
     if (!items.length) return null
 
     return (
-      <section className="staff-section" key={title}>
+      <section className={`staff-section staff-section-${mode}`} key={title}>
         <div className="staff-section-header">
+          <span className="staff-section-icon" aria-hidden="true">{mode === 'owners' ? '♛' : mode === 'founders' ? '☆' : '▣'}</span>
           <h3>{title}</h3>
         </div>
         <div className={`staff-grid staff-grid-${mode}`}>

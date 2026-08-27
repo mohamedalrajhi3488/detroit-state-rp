@@ -117,6 +117,7 @@ const normalizeStaff = (staff = []) => {
     role: member.role || member.group || 'staff',
     group: member.group || member.role || 'staff',
     account: member.account || '',
+    socials: Array.isArray(member.socials) ? member.socials : (Array.isArray(member.socialLinks) ? member.socialLinks : []),
     image: member.image || '',
     url: member.url || '',
     visible: member.visible !== false,
