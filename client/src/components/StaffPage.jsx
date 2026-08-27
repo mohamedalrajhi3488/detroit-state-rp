@@ -31,7 +31,13 @@ const makeInitials = (name = '') => {
 
 const formatMemberLabel = (member) => {
   const raw = String(member?.title || member?.role || member?.position || '').trim()
+  if (raw.toLowerCase() === 'founder' || raw.toLowerCase() === 'founders') return 'Developer'
   return raw || 'مستخدم'
+}
+
+const formatMemberDetail = (value) => {
+  const detail = String(value || '').trim()
+  return detail.toLowerCase() === 'founder' || detail.toLowerCase() === 'founders' ? 'Developer' : detail
 }
 
 const normalizeSocialLinks = (member) => {
@@ -40,6 +46,7 @@ const normalizeSocialLinks = (member) => {
   const allLinks = [...links, ...legacyLinks]
 
   if (member?.socialUrl) allLinks.push({ url: member.socialUrl })
+  if (member?.url) allLinks.push({ url: member.url })
 
   return allLinks
     .map((item) => {
@@ -75,20 +82,23 @@ export default function StaffPage({ staff = [] }) {
     const safeImage = member.image || '/img/DS.webp'
     const roleLabel = formatMemberLabel(member)
     const socialLinks = normalizeSocialLinks(member)
+    const profileUrl = member.url && /^https?:\/\//i.test(member.url) ? member.url : null
     const avatarStyle = member.image
       ? { backgroundImage: `url(${safeImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }
       : { background: 'linear-gradient(135deg, rgba(157, 77, 255, 0.22), rgba(17, 26, 38, 0.9))' }
 
     const cardContent = (
       <>
-        <div className="staff-avatar" style={avatarStyle}>
+        {profileUrl ? <a href={profileUrl} target="_blank" rel="noreferrer" className="creator-link" aria-label={`ملف ${member.name || 'العضو'}`}><div className="staff-avatar creator-avatar" style={avatarStyle}>
           {!member.image && <span>{makeInitials(member.name)}</span>}
-        </div>
-        <div className="staff-meta">
-          <strong>{member.name || 'Unnamed'}</strong>
+        </div></a> : <div className="staff-avatar creator-avatar" style={avatarStyle}>
+          {!member.image && <span>{makeInitials(member.name)}</span>}
+        </div>}
+        <div className="staff-meta streamer-meta">
+          {profileUrl ? <a href={profileUrl} target="_blank" rel="noreferrer" className="creator-link"><strong>{member.name || 'Unnamed'}</strong></a> : <strong>{member.name || 'Unnamed'}</strong>}
           <span className="staff-role">{roleLabel}</span>
-          {member.username && member.username !== member.name && <small>{member.username}</small>}
-          {member.account && <small>{member.account}</small>}
+          {formatMemberDetail(member.username) && formatMemberDetail(member.username) !== member.name && <small>{formatMemberDetail(member.username)}</small>}
+          {formatMemberDetail(member.account) && <small>{formatMemberDetail(member.account)}</small>}
           {socialLinks.length > 0 && (
             <div className="staff-socials" aria-label={`حسابات ${member.name || 'العضو'}`}>
               {socialLinks.map(({ url, label }, socialIndex) => {
@@ -114,7 +124,6 @@ export default function StaffPage({ staff = [] }) {
     return (
       <section className={`staff-section staff-section-${mode}`} key={title}>
         <div className="staff-section-header">
-          <span className="staff-section-icon" aria-hidden="true">{mode === 'owners' ? '♛' : mode === 'founders' ? '☆' : '▣'}</span>
           <h3>{title}</h3>
         </div>
         <div className={`staff-grid staff-grid-${mode}`}>
@@ -147,7 +156,7 @@ export default function StaffPage({ staff = [] }) {
       </div>
 
       {renderSection('DS Owners', ownerCards, 'owners')}
-      {renderSection('DS Founders', founderCards, 'founders')}
+      {renderSection('DS Dev', founderCards, 'founders')}
       {renderSection('DS Staff', staffCards, 'staff')}
     </section>
   )

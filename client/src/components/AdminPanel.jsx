@@ -1886,14 +1886,14 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
 
                   <label className="creator-field">
                     <span>المنصب</span>
-                    <input type="text" value={staffForm.title} onChange={(event) => setStaffForm((current) => ({ ...current, title: event.target.value }))} placeholder="Owner / Founder / Moderator" />
+                    <input type="text" value={staffForm.title} onChange={(event) => setStaffForm((current) => ({ ...current, title: event.target.value }))} placeholder="Owner / Developer / Moderator" />
                   </label>
 
                   <label className="creator-field">
                     <span>المجموعة</span>
                     <select value={staffForm.group || staffForm.role || 'staff'} onChange={(event) => setStaffForm((current) => ({ ...current, role: event.target.value, group: event.target.value }))}>
                       <option value="owner">Owners</option>
-                      <option value="founder">Founders</option>
+                      <option value="founder">Developers</option>
                       <option value="staff">Staff</option>
                     </select>
                   </label>
