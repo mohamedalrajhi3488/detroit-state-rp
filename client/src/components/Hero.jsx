@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 
 export default function Hero({ loggedUser = null, onLoginClick }) {
   const [onlineCount, setOnlineCount] = useState(0)
+  const [serverStatus, setServerStatus] = useState('restarting')
 
   const joinServerUrl = 'https://cfx.re/join/dg3r3zd'
   const isLoggedIn = Boolean(loggedUser)
@@ -12,18 +13,24 @@ export default function Hero({ loggedUser = null, onLoginClick }) {
     const loadOnlineCount = async () => {
       try {
         const response = await fetch('/api/server-status', { cache: 'no-store' })
-        if (!response.ok) throw new Error('server status unavailable')
+        if (!response.ok) {
+          setServerStatus(response.status === 404 ? 'offline' : 'restarting')
+          throw new Error('server status unavailable')
+        }
 
         const data = await response.json()
-        const playersPayload = data?.players ?? data?.Data?.players ?? data?.data?.players ?? []
-        const nextCount = Array.isArray(playersPayload) ? playersPayload.length : Number(playersPayload || 0)
+        const serverData = data?.Data ?? data?.data ?? data
+        const playersPayload = serverData?.players ?? []
+        const nextCount = Number(serverData?.clients ?? (Array.isArray(playersPayload) ? playersPayload.length : playersPayload))
 
         if (active) {
           setOnlineCount(Number.isFinite(nextCount) ? nextCount : 0)
+          setServerStatus('online')
         }
       } catch {
         if (active) {
           setOnlineCount(0)
+          setServerStatus((current) => current === 'offline' ? 'offline' : 'restarting')
         }
       }
     }
@@ -36,6 +43,12 @@ export default function Hero({ loggedUser = null, onLoginClick }) {
       window.clearInterval(timer)
     }
   }, [])
+
+  const serverStatusLabel = {
+    online: 'متصل',
+    offline: 'غير متصل',
+    restarting: 'إعادة التشغيل'
+  }[serverStatus]
 
   return (
     <section className="hero-shell">
@@ -54,9 +67,9 @@ export default function Hero({ loggedUser = null, onLoginClick }) {
 
       <div className="hero-content">
         <div className="hero-badges" aria-label="Detroit State live player count">
-          <span className="hero-chip hero-chip--live">
-            <span className="hero-live-text">متصل</span>
-            <span className="hero-live-count">{onlineCount}</span>
+          <span className={`hero-chip hero-chip--live is-${serverStatus}`}>
+            <span className="hero-live-text">{serverStatusLabel}</span>
+            <span className="hero-live-count">{serverStatus === 'online' ? onlineCount : '—'}</span>
             <span className="hero-live-dot" aria-hidden="true" />
           </span>
           <span className="hero-chip hero-chip--primary">Season 1</span>
