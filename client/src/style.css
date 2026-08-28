@@ -3587,12 +3587,35 @@ img { max-width: 100%; display: block; }
   padding: 0 22px 22px;
 }
 
+.faq-answer {
+  display: grid;
+  gap: 14px;
+}
+
 .faq-answer p {
   margin: 18px 0 0;
   color: rgba(230, 229, 255, 0.76);
   line-height: 2;
   font-size: 1rem;
   text-align: right;
+}
+
+.faq-answer-list {
+  margin: 18px 0 0;
+  padding-right: 22px;
+  color: rgba(230, 229, 255, 0.76);
+  line-height: 2;
+  text-align: right;
+}
+
+.faq-answer-list li {
+  margin-bottom: 8px;
+  padding-right: 4px;
+  list-style: disc;
+}
+
+.faq-answer-list li::marker {
+  color: #d8bbff;
 }
 
 @media (max-width: 640px) {

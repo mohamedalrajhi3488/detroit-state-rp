@@ -2,6 +2,43 @@ import React from 'react'
 
 export const defaultFaqGroups = []
 
+const renderAnswerContent = (answer = '') => {
+  const normalized = String(answer || '').replace(/\r\n/g, '\n').trim()
+
+  if (!normalized) {
+    return <p>—</p>
+  }
+
+  const blocks = normalized.split(/\n\s*\n/).filter(Boolean)
+
+  return blocks.map((block, blockIndex) => {
+    const lines = block
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+
+    const isListBlock = lines.length > 0 && lines.every((line) => /^([•\-*]|\d+\.)\s+/.test(line))
+
+    if (isListBlock) {
+      return (
+        <ul key={`faq-block-${blockIndex}`} className="faq-answer-list">
+          {lines.map((line, lineIndex) => (
+            <li key={`${blockIndex}-${lineIndex}`}>
+              {line.replace(/^([•\-*]|\d+\.)\s+/, '')}
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    return (
+      <p key={`faq-block-${blockIndex}`}>
+        {lines.join(' ')}
+      </p>
+    )
+  })
+}
+
 export default function Faq({ groups = defaultFaqGroups }) {
   const faqGroups = Array.isArray(groups) && groups.length ? groups : defaultFaqGroups
 
@@ -28,7 +65,7 @@ export default function Faq({ groups = defaultFaqGroups }) {
                   <details key={`${group.id || group.title}-${item.id || item.question}`} className="faq-item" open={index === 0}>
                     <summary>{item.question}</summary>
                     <div className="faq-answer">
-                      <p>{item.answer}</p>
+                      {renderAnswerContent(item.answer)}
                     </div>
                   </details>
                 ))}
