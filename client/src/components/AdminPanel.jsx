@@ -149,15 +149,15 @@ const getAvailableTabs = (role) => {
   const normalized = normalizeUserRole(role)
 
   if (normalized === 'Owner') {
-    return ['dashboard', 'pages', 'faq', 'quiz', 'shop', 'users', 'creators', 'staff', 'news', 'activities', 'settings']
+    return ['dashboard', 'pages', 'faq', 'quiz', 'quiz-results', 'shop', 'users', 'creators', 'staff', 'news', 'activities', 'settings']
   }
 
   if (normalized === 'Admin') {
-    return ['dashboard', 'faq', 'quiz', 'shop', 'staff', 'news', 'activities']
+    return ['dashboard', 'faq', 'quiz', 'quiz-results', 'shop', 'staff', 'news', 'activities']
   }
 
   if (normalized === 'Mod') {
-    return ['dashboard', 'faq', 'quiz', 'shop', 'news', 'activities']
+    return ['dashboard', 'faq', 'quiz', 'quiz-results', 'shop', 'news', 'activities']
   }
 
   return []
@@ -1302,16 +1302,17 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
         <nav className="admin-nav">
           {[
             ['dashboard', 'لوحة التحكم'],
-            ['pages', 'الصفحات'],
-            ['faq', 'الأسئلة'],
-            ['quiz', 'الاختبارات'],
+            ['pages', 'صفحات الموقع'],
+            ['faq', 'الأسئلة الشائعة'],
+            ['quiz', 'الأختبار الإلكتروني'],
+            ['quiz-results', 'نتائج الأختبار الإلكتروني'],
             ['shop', 'المتجر'],
             ['users', 'الحسابات'],
             ['creators', 'صناع المحتوى'],
             ['staff', 'الطاقم الإداري'],
-            ['news', 'الأخبار'],
-            ['activities', 'كل الأنشطة'],
-            ['settings', 'الإعدادات']
+            ['news', 'اخبار الموقع'],
+            ['activities', 'كل أنشطة (السجلات)'],
+            ['settings', 'الأعدادات الموقع']
           ]
             .filter(([key]) => allowedTabs.includes(key))
             .map(([key, label]) => (
@@ -1728,6 +1729,52 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
             </div>
 
             <div className="faq-admin-items">
+              {(quizResults || []).map((result) => (
+                <div key={result.id} className="faq-admin-item" style={{ padding: '1rem' }}>
+                  <div className="panel-title-row" style={{ alignItems: 'center' }}>
+                    <div>
+                      <strong>{result.userName || 'مستخدم'}</strong>
+                      <small style={{ display: 'block' }}>الدرجة: {result.score || 0}/{result.total || 0} • {result.passed ? 'نجح' : 'لم ينجح'}</small>
+                    </div>
+                    <div className="row-actions">
+                      <button type="button" className="mini-btn" onClick={() => setExpandedResultId(expandedResultId === result.id ? null : result.id)}>تفاصيل</button>
+                      {!result.reviewed && result.passed && (
+                        <button type="button" className="mini-btn primary" onClick={() => awardQuizRole(result)}>منح الرتبة</button>
+                      )}
+                    </div>
+                  </div>
+
+                  {expandedResultId === result.id && (
+                    <div style={{ marginTop: '0.75rem' }}>
+                      <p><strong>تاريخ الإرسال:</strong> {new Date(result.submittedAt || Date.now()).toLocaleString('ar-EG')}</p>
+                      <div>
+                        {Object.entries(result.answers || {}).map(([questionId, answerIndex]) => (
+                          <div key={questionId} style={{ marginBottom: '0.4rem' }}>
+                            <small>السؤال {questionId}: الإجابة رقم {Number(answerIndex) + 1}</small>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {selectedTab === 'quiz-results' && (
+          <div className="panel-card">
+            <div className="panel-title-row">
+              <h3>نتائج الأختبار الإلكتروني</h3>
+            </div>
+
+            <div className="faq-admin-items">
+              {(quizResults || []).length === 0 && (
+                <div className="faq-admin-item" style={{ padding: '1rem' }}>
+                  <p>لا توجد نتائج بعد.</p>
+                </div>
+              )}
+
               {(quizResults || []).map((result) => (
                 <div key={result.id} className="faq-admin-item" style={{ padding: '1rem' }}>
                   <div className="panel-title-row" style={{ alignItems: 'center' }}>
