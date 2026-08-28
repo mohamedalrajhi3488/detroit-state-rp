@@ -8,7 +8,7 @@ import Streamers from './components/Streamers'
 import StaffPage from './components/StaffPage'
 import Jobs from './components/Jobs'
 import Rules from './components/Rules'
-import Faq from './components/Faq'
+import Faq, { defaultFaqGroups } from './components/Faq'
 import Footer from './components/Footer'
 import LoginPage from './components/LoginPage'
 import AdminPanel from './components/AdminPanel'
@@ -105,6 +105,7 @@ const defaultCreators = []
 const defaultStaff = []
 
 const defaultShopProducts = []
+const defaultFaqState = Array.isArray(defaultFaqGroups) ? defaultFaqGroups : []
 
 const normalizeStaff = (staff = []) => {
   if (!Array.isArray(staff)) return []
@@ -288,11 +289,11 @@ const formatNumericActivityTime = (value) => {
 }
 
 const getSavedData = () => {
-  if (typeof window === 'undefined') return { pages: defaultPages, users: [], settings: defaultSettings }
+  if (typeof window === 'undefined') return { pages: defaultPages, users: [], settings: defaultSettings, faqGroups: defaultFaqState }
 
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    if (!saved) return { pages: defaultPages, users: [], settings: defaultSettings, creators: defaultCreators, news: [], staff: defaultStaff }
+    if (!saved) return { pages: defaultPages, users: [], settings: defaultSettings, creators: defaultCreators, news: [], staff: defaultStaff, faqGroups: defaultFaqState }
 
     const parsed = JSON.parse(saved)
     const normalizedSettings = { ...defaultSettings, ...(parsed.settings || {}) }
@@ -314,10 +315,11 @@ const getSavedData = () => {
       })),
       news: normalizeNews(parsed.news || []),
       products: Array.isArray(parsed.products) && parsed.products.length ? parsed.products : defaultShopProducts,
-      staff: normalizeStaff(parsed.staff || defaultStaff)
+      staff: normalizeStaff(parsed.staff || defaultStaff),
+      faqGroups: Array.isArray(parsed.faqGroups) && parsed.faqGroups.length ? parsed.faqGroups : defaultFaqState
     }
   } catch {
-    return { pages: defaultPages, users: [], settings: defaultSettings, creators: defaultCreators, news: [], products: defaultShopProducts, staff: defaultStaff }
+    return { pages: defaultPages, users: [], settings: defaultSettings, creators: defaultCreators, news: [], products: defaultShopProducts, staff: defaultStaff, faqGroups: defaultFaqState }
   }
 }
 
@@ -1197,7 +1199,7 @@ export default function App() {
     if (page.type === 'news') return renderNewsPage()
     if (page.type === 'faq') return (
       <>
-        <Faq />
+        <Faq groups={siteData.faqGroups || defaultFaqGroups} />
       </>
     )
     if (page.type === 'quiz') return <section className="dynamic-page-shell"><div className="dynamic-page-card"><span className="dynamic-page-badge">{page.name}</span><h2>{page.name}</h2><p>{page.description}</p><div className="dynamic-page-grid"><article><strong>الاختبارات الحالية</strong><p>اختبارات خاصة بالمواصفات والمهارات داخل المجتمع.</p></article><article><strong>التقييم</strong><p>يتم تصنيف المشاركين بناءً على جودة إجاباتهم ومهاراتهم.</p></article></div></div></section>
