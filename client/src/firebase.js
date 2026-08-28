@@ -34,6 +34,8 @@ export const newsCollection = collection(db, 'news')
 export const staffCollection = collection(db, 'staff')
 export const shopProductsCollection = collection(db, 'shopProducts')
 export const faqGroupsCollection = collection(db, 'faqGroups')
+export const quizQuestionsCollection = collection(db, 'quizQuestions')
+export const quizResultsCollection = collection(db, 'quizResults')
 
 export const saveActivityToFirestore = async (entry) => {
   if (!entry?.user) return null
@@ -224,6 +226,30 @@ export const saveFaqGroupsToFirestore = async (faqGroups) => {
   }
 }
 
+export const saveQuizQuestionsToFirestore = async (questions) => {
+  if (!Array.isArray(questions)) return null
+
+  try {
+    await setDoc(doc(db, 'quizQuestions', 'list'), { items: questions })
+    return questions
+  } catch (error) {
+    console.warn('Firestore quiz questions save failed:', error)
+    return null
+  }
+}
+
+export const saveQuizResultsToFirestore = async (results) => {
+  if (!Array.isArray(results)) return null
+
+  try {
+    await setDoc(doc(db, 'quizResults', 'list'), { items: results })
+    return results
+  } catch (error) {
+    console.warn('Firestore quiz results save failed:', error)
+    return null
+  }
+}
+
 export const getActivityFromFirestore = async (count = 20) => {
   try {
     const snapshot = await getDocs(query(activityCollection, orderBy('time', 'desc'), limit(count)))
@@ -316,6 +342,26 @@ export const getFaqGroupsFromFirestore = async () => {
     return snapshot.exists() ? (snapshot.data()?.items || []) : []
   } catch (error) {
     console.warn('Firestore FAQ groups fetch failed:', error)
+    return []
+  }
+}
+
+export const getQuizQuestionsFromFirestore = async () => {
+  try {
+    const snapshot = await getDoc(doc(db, 'quizQuestions', 'list'))
+    return snapshot.exists() ? (snapshot.data()?.items || []) : []
+  } catch (error) {
+    console.warn('Firestore quiz questions fetch failed:', error)
+    return []
+  }
+}
+
+export const getQuizResultsFromFirestore = async () => {
+  try {
+    const snapshot = await getDoc(doc(db, 'quizResults', 'list'))
+    return snapshot.exists() ? (snapshot.data()?.items || []) : []
+  } catch (error) {
+    console.warn('Firestore quiz results fetch failed:', error)
     return []
   }
 }

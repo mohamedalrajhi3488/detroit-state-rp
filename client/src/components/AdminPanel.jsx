@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { defaultFaqGroups } from './Faq'
-import { savePagesToFirestore, saveShopProductsToFirestore, saveCreatorsToFirestore, saveNewsToFirestore, saveUsersToFirestore, saveStaffToFirestore, saveFaqGroupsToFirestore } from '../firebase'
+import { savePagesToFirestore, saveShopProductsToFirestore, saveCreatorsToFirestore, saveNewsToFirestore, saveUsersToFirestore, saveStaffToFirestore, saveFaqGroupsToFirestore, saveQuizQuestionsToFirestore, saveQuizResultsToFirestore } from '../firebase'
 
 const formatNumericActivityTime = (value) => {
   const date = new Date(value)
@@ -138,19 +138,26 @@ const resolvePageType = (page, fallbackIndex = 0) => {
 
 const roleOptions = ['Owner', 'Admin', 'Mod', 'Member']
 
+const defaultQuizQuestions = [
+  { id: 'quiz-q-1', question: 'ما هو الهدف الأساسي لقاعدة السيرفر في المجتمع؟', options: ['التنافس فقط', 'الحفاظ على النظام والانسجام والهدوء', 'الاستعراض فقط', 'إدارة السيرفر بشكل شخصي'], correctIndex: 1 },
+  { id: 'quiz-q-2', question: 'ماذا يجب أن تفعل إذا واجهت مشكلة أو خلل في gameplay؟', options: ['تجاهلها', 'تسجيل المشكلة في القناة المناسبة وطلب المساعدة', 'الاستمرار دون تنبيه', 'التحرش بالآخرين'], correctIndex: 1 },
+  { id: 'quiz-q-3', question: 'هل يُسمح باستخدام التلاعب أو الحيل في السيرفر؟', options: ['نعم، إذا كان سريعاً', 'لا، لأن هذا يخالف القوانين', 'نعم، إذا كان في المعارك', 'لا يوجد قانون'], correctIndex: 1 },
+  { id: 'quiz-q-4', question: 'ما الذي يضمن تجربة إيجابية داخل المجتمع؟', options: ['احترام اللاعبين والنظام والقوانين', 'التحدث فقط بالأوامر', 'عدم التفاعل', 'التخفي في كل الأوقات'], correctIndex: 0 }
+]
+
 const getAvailableTabs = (role) => {
   const normalized = normalizeUserRole(role)
 
   if (normalized === 'Owner') {
-    return ['dashboard', 'pages', 'faq', 'shop', 'users', 'creators', 'staff', 'news', 'activities', 'settings']
+    return ['dashboard', 'pages', 'faq', 'quiz', 'shop', 'users', 'creators', 'staff', 'news', 'activities', 'settings']
   }
 
   if (normalized === 'Admin') {
-    return ['dashboard', 'faq', 'shop', 'staff', 'news', 'activities']
+    return ['dashboard', 'faq', 'quiz', 'shop', 'staff', 'news', 'activities']
   }
 
   if (normalized === 'Mod') {
-    return ['dashboard', 'faq', 'shop', 'news', 'activities']
+    return ['dashboard', 'faq', 'quiz', 'shop', 'news', 'activities']
   }
 
   return []
@@ -212,6 +219,10 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   const [faqDraftGroups, setFaqDraftGroups] = useState(Array.isArray(data?.faqGroups) && data.faqGroups.length ? data.faqGroups : defaultFaqGroups)
   const [faqGroupModalOpen, setFaqGroupModalOpen] = useState(false)
   const [faqGroupForm, setFaqGroupForm] = useState({ title: '' })
+  const [quizQuestions, setQuizQuestions] = useState(Array.isArray(data?.quizQuestions) && data.quizQuestions.length ? data.quizQuestions : defaultQuizQuestions)
+  const [quizDraftQuestions, setQuizDraftQuestions] = useState(Array.isArray(data?.quizQuestions) && data.quizQuestions.length ? data.quizQuestions : defaultQuizQuestions)
+  const [quizResults, setQuizResults] = useState(Array.isArray(data?.quizResults) ? data.quizResults : [])
+  const [expandedResultId, setExpandedResultId] = useState(null)
 
   const [shopForm, setShopForm] = useState({
     id: null,
@@ -245,6 +256,10 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     const nextFaqGroups = Array.isArray(data?.faqGroups) && data.faqGroups.length ? data.faqGroups : defaultFaqGroups
     setFaqGroups(nextFaqGroups)
     setFaqDraftGroups(nextFaqGroups)
+    const nextQuizQuestions = Array.isArray(data?.quizQuestions) && data.quizQuestions.length ? data.quizQuestions : defaultQuizQuestions
+    setQuizQuestions(nextQuizQuestions)
+    setQuizDraftQuestions(nextQuizQuestions)
+    setQuizResults(Array.isArray(data?.quizResults) ? data.quizResults : [])
   }, [data])
 
   useEffect(() => {
@@ -261,7 +276,9 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     nextSettings = settings,
     nextProducts = shopProducts,
     nextStaff = staff,
-    nextFaqGroups = faqGroups
+    nextFaqGroups = faqGroups,
+    nextQuizQuestions = quizQuestions,
+    nextQuizResults = quizResults
   ) => {
     const payload = {
       pages: nextPages,
@@ -271,7 +288,9 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
       settings: nextSettings,
       products: nextProducts,
       staff: nextStaff,
-      faqGroups: nextFaqGroups
+      faqGroups: nextFaqGroups,
+      quizQuestions: nextQuizQuestions,
+      quizResults: nextQuizResults
     }
 
     setPages(nextPages)
@@ -282,6 +301,8 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     setSettings(nextSettings)
     setShopProducts(nextProducts)
     setFaqGroups(nextFaqGroups)
+    setQuizQuestions(nextQuizQuestions)
+    setQuizResults(nextQuizResults)
 
     // DEBUG: log commit payload for troubleshooting product deletion
     try {
@@ -309,7 +330,9 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
         settings: nextSettings,
         products: nextProducts,
         staff: nextStaff,
-        faqGroups: nextFaqGroups
+        faqGroups: nextFaqGroups,
+        quizQuestions: nextQuizQuestions,
+        quizResults: nextQuizResults
       }))
     }
 
@@ -340,6 +363,14 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     if (Array.isArray(nextFaqGroups)) {
       saveFaqGroupsToFirestore(nextFaqGroups).catch((err) => { console.warn('saveFaqGroupsToFirestore error:', err); notify('error', 'فشل حفظ الأسئلة إلى Firestore.'); })
     }
+
+    if (Array.isArray(nextQuizQuestions)) {
+      saveQuizQuestionsToFirestore(nextQuizQuestions).catch((err) => { console.warn('saveQuizQuestionsToFirestore error:', err); notify('error', 'فشل حفظ أسئلة الاختبار إلى Firestore.'); })
+    }
+
+    if (Array.isArray(nextQuizResults)) {
+      saveQuizResultsToFirestore(nextQuizResults).catch((err) => { console.warn('saveQuizResultsToFirestore error:', err); notify('error', 'فشل حفظ نتائج الاختبار إلى Firestore.'); })
+    }
   }
 
   const stats = useMemo(() => ({
@@ -349,6 +380,37 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     creators: creators.filter((c) => c.visible !== false).length,
     online: dashboardStats.onlinePlayers || 0
   }), [users, pages, creators, dashboardStats.onlinePlayers])
+
+  const saveQuizDraft = () => {
+    setQuizQuestions(quizDraftQuestions)
+    commitData(pages, users, creators, news, settings, shopProducts, staff, faqGroups, quizDraftQuestions, quizResults)
+    notify('success', 'تم حفظ أسئلة الاختبار بنجاح.')
+  }
+
+  const awardQuizRole = async (result) => {
+    if (!result?.discordId) return
+
+    try {
+      const response = await fetch('/api/discord/assign-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: String(result.discordId), roleId: String(result.roleId || '1542968359266811944') })
+      })
+
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(payload?.error || 'role_assignment_failed')
+      }
+
+      const nextResults = (quizResults || []).map((item) => String(item.id) === String(result.id) ? { ...item, reviewed: true, passed: true, roleGranted: true } : item)
+      setQuizResults(nextResults)
+      commitData(pages, users, creators, news, settings, shopProducts, staff, faqGroups, quizQuestions, nextResults)
+      notify('success', 'تم منح رتبة النجاح بنجاح.')
+    } catch (error) {
+      console.warn('Discord role assignment failed:', error)
+      notify('error', 'فشل منح رتبة النجاح. تأكد من إعداد البوت والعضوية.')
+    }
+  }
 
   const resolveActivityAvatar = (entry) => {
     if (entry?.avatar) return entry.avatar
@@ -1242,6 +1304,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
             ['dashboard', 'لوحة التحكم'],
             ['pages', 'الصفحات'],
             ['faq', 'الأسئلة'],
+            ['quiz', 'الاختبارات'],
             ['shop', 'المتجر'],
             ['users', 'الحسابات'],
             ['creators', 'صناع المحتوى'],
@@ -1568,6 +1631,130 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                     <button type="button" className="mini-btn" onClick={() => movePage(page.id, 'down')}>↓</button>
                     <button type="button" className="mini-btn danger" onClick={() => setPendingDelete({ type: 'page', id: page.id, name: page.name })}>حذف</button>
                   </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {selectedTab === 'quiz' && (
+          <div className="panel-card">
+            <div className="panel-title-row">
+              <h3>إدارة اختبار Detroit State</h3>
+              <button type="button" className="mini-btn primary" onClick={saveQuizDraft}>حفظ</button>
+            </div>
+
+            <div className="faq-admin-groups">
+              {(quizDraftQuestions || []).map((question, questionIndex) => (
+                <div key={question.id || `quiz-question-${questionIndex}`} className="faq-admin-group">
+                  <div className="faq-admin-header">
+                    <input
+                      type="text"
+                      value={question.question}
+                      onChange={(event) => {
+                        const nextQuestions = quizDraftQuestions.map((item, index) => index === questionIndex ? { ...item, question: event.target.value } : item)
+                        setQuizDraftQuestions(nextQuestions)
+                      }}
+                      placeholder="نص السؤال"
+                    />
+                    <div className="row-actions">
+                      <button type="button" className="mini-btn" onClick={() => {
+                        const nextQuestions = [...quizDraftQuestions]
+                        const [selected] = nextQuestions.splice(questionIndex, 1)
+                        nextQuestions.splice(Math.max(0, questionIndex - 1), 0, selected)
+                        setQuizDraftQuestions(nextQuestions)
+                      }} disabled={questionIndex === 0}>↑</button>
+                      <button type="button" className="mini-btn" onClick={() => {
+                        const nextQuestions = [...quizDraftQuestions]
+                        const [selected] = nextQuestions.splice(questionIndex, 1)
+                        nextQuestions.splice(Math.min(nextQuestions.length, questionIndex + 1), 0, selected)
+                        setQuizDraftQuestions(nextQuestions)
+                      }} disabled={questionIndex === quizDraftQuestions.length - 1}>↓</button>
+                      <button type="button" className="mini-btn danger" onClick={() => {
+                        const nextQuestions = quizDraftQuestions.filter((_, index) => index !== questionIndex)
+                        setQuizDraftQuestions(nextQuestions)
+                      }}>حذف</button>
+                    </div>
+                  </div>
+
+                  <div className="faq-admin-items">
+                    {(question.options || []).map((option, optionIndex) => (
+                      <div key={`${question.id}-option-${optionIndex}`} className="faq-admin-item">
+                        <input
+                          type="text"
+                          value={option}
+                          onChange={(event) => {
+                            const nextQuestions = quizDraftQuestions.map((item, index) => index === questionIndex ? {
+                              ...item,
+                              options: (item.options || []).map((choice, choiceIndex) => choiceIndex === optionIndex ? event.target.value : choice)
+                            } : item)
+                            setQuizDraftQuestions(nextQuestions)
+                          }}
+                          placeholder={`الخيار ${optionIndex + 1}`}
+                        />
+                        <label className="mini-checkbox">
+                          <input
+                            type="radio"
+                            name={`correct-${question.id}`}
+                            checked={Number(question.correctIndex) === optionIndex}
+                            onChange={() => {
+                              const nextQuestions = quizDraftQuestions.map((item, index) => index === questionIndex ? { ...item, correctIndex: optionIndex } : item)
+                              setQuizDraftQuestions(nextQuestions)
+                            }}
+                          />
+                          <span>إجابة صحيحة</span>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="row-actions" style={{ marginTop: '1rem' }}>
+              <button type="button" className="mini-btn" onClick={() => {
+                const nextQuestions = [...quizDraftQuestions, {
+                  id: `quiz-q-${Date.now()}`,
+                  question: 'سؤال جديد',
+                  options: ['خيار 1', 'خيار 2', 'خيار 3', 'خيار 4'],
+                  correctIndex: 0
+                }]
+                setQuizDraftQuestions(nextQuestions)
+              }}>+ إضافة سؤال</button>
+            </div>
+
+            <div className="panel-title-row" style={{ marginTop: '2rem' }}>
+              <h3>نتائج الاختبار</h3>
+            </div>
+
+            <div className="faq-admin-items">
+              {(quizResults || []).map((result) => (
+                <div key={result.id} className="faq-admin-item" style={{ padding: '1rem' }}>
+                  <div className="panel-title-row" style={{ alignItems: 'center' }}>
+                    <div>
+                      <strong>{result.userName || 'مستخدم'}</strong>
+                      <small style={{ display: 'block' }}>الدرجة: {result.score || 0}/{result.total || 0} • {result.passed ? 'نجح' : 'لم ينجح'}</small>
+                    </div>
+                    <div className="row-actions">
+                      <button type="button" className="mini-btn" onClick={() => setExpandedResultId(expandedResultId === result.id ? null : result.id)}>تفاصيل</button>
+                      {!result.reviewed && result.passed && (
+                        <button type="button" className="mini-btn primary" onClick={() => awardQuizRole(result)}>منح الرتبة</button>
+                      )}
+                    </div>
+                  </div>
+
+                  {expandedResultId === result.id && (
+                    <div style={{ marginTop: '0.75rem' }}>
+                      <p><strong>تاريخ الإرسال:</strong> {new Date(result.submittedAt || Date.now()).toLocaleString('ar-EG')}</p>
+                      <div>
+                        {Object.entries(result.answers || {}).map(([questionId, answerIndex]) => (
+                          <div key={questionId} style={{ marginBottom: '0.4rem' }}>
+                            <small>السؤال {questionId}: الإجابة رقم {Number(answerIndex) + 1}</small>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

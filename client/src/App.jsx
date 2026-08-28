@@ -11,6 +11,7 @@ import Rules from './components/Rules'
 import Faq, { defaultFaqGroups } from './components/Faq'
 import Footer from './components/Footer'
 import LoginPage from './components/LoginPage'
+import QuizPage from './components/QuizPage'
 import AdminPanel from './components/AdminPanel'
 import {
   deleteActivityFromFirestore,
@@ -22,6 +23,8 @@ import {
   getUsersFromFirestore,
   getStaffFromFirestore,
   getFaqGroupsFromFirestore,
+  getQuizQuestionsFromFirestore,
+  getQuizResultsFromFirestore,
   saveActivityToFirestore,
   saveCreatorsToFirestore,
   saveNewsToFirestore,
@@ -33,7 +36,9 @@ import {
   saveUsersToFirestore,
   getNewsFromFirestore,
   getShopProductsFromFirestore,
-  saveFaqGroupsToFirestore
+  saveFaqGroupsToFirestore,
+  saveQuizQuestionsToFirestore,
+  saveQuizResultsToFirestore
 } from './firebase'
 import './style.css'
 import './admin.css'
@@ -108,6 +113,33 @@ const defaultStaff = []
 
 const defaultShopProducts = []
 const defaultFaqState = Array.isArray(defaultFaqGroups) ? defaultFaqGroups : []
+const defaultQuizQuestions = [
+  {
+    id: 'quiz-q-1',
+    question: 'ما هو الهدف الأساسي لقاعدة السيرفر في المجتمع؟',
+    options: ['التنافس فقط', 'الحفاظ على النظام والانسجام والهدوء', 'الاستعراض فقط', 'إدارة السيرفر بشكل شخصي'],
+    correctIndex: 1
+  },
+  {
+    id: 'quiz-q-2',
+    question: 'ماذا يجب أن تفعل إذا واجهت مشكلة أو خلل في gameplay؟',
+    options: ['تجاهلها', 'تسجيل المشكلة في القناة المناسبة وطلب المساعدة', 'الاستمرار دون تنبيه', 'التحرش بالآخرين'],
+    correctIndex: 1
+  },
+  {
+    id: 'quiz-q-3',
+    question: 'هل يُسمح باستخدام التلاعب أو الحيل في السيرفر؟',
+    options: ['نعم، إذا كان سريعاً', 'لا، لأن هذا يخالف القوانين', 'نعم، إذا كان في المعارك', 'لا يوجد قانون'],
+    correctIndex: 1
+  },
+  {
+    id: 'quiz-q-4',
+    question: 'ما الذي يضمن تجربة إيجابية داخل المجتمع؟',
+    options: ['احترام اللاعبين والنظام والقوانين', 'التحدث فقط بالأوامر', 'عدم التفاعل', 'التخفي في كل الأوقات'],
+    correctIndex: 0
+  }
+]
+const defaultQuizResults = []
 
 const normalizeStaff = (staff = []) => {
   if (!Array.isArray(staff)) return []
@@ -318,10 +350,12 @@ const getSavedData = () => {
       news: normalizeNews(parsed.news || []),
       products: Array.isArray(parsed.products) && parsed.products.length ? parsed.products : defaultShopProducts,
       staff: normalizeStaff(parsed.staff || defaultStaff),
-      faqGroups: Array.isArray(parsed.faqGroups) && parsed.faqGroups.length ? parsed.faqGroups : defaultFaqState
+      faqGroups: Array.isArray(parsed.faqGroups) && parsed.faqGroups.length ? parsed.faqGroups : defaultFaqState,
+      quizQuestions: Array.isArray(parsed.quizQuestions) && parsed.quizQuestions.length ? parsed.quizQuestions : defaultQuizQuestions,
+      quizResults: Array.isArray(parsed.quizResults) ? parsed.quizResults : defaultQuizResults
     }
   } catch {
-    return { pages: defaultPages, users: [], settings: defaultSettings, creators: defaultCreators, news: [], products: defaultShopProducts, staff: defaultStaff, faqGroups: defaultFaqState }
+    return { pages: defaultPages, users: [], settings: defaultSettings, creators: defaultCreators, news: [], products: defaultShopProducts, staff: defaultStaff, faqGroups: defaultFaqState, quizQuestions: defaultQuizQuestions, quizResults: defaultQuizResults }
   }
 }
 
@@ -485,11 +519,13 @@ export default function App() {
           getNewsFromFirestore(),
           getShopProductsFromFirestore(),
           getStaffFromFirestore(),
-          getFaqGroupsFromFirestore()
+          getFaqGroupsFromFirestore(),
+          getQuizQuestionsFromFirestore(),
+          getQuizResultsFromFirestore()
         ])
 
-        const [settings, pages, creators, news, products, staff, faqGroups] = firestoreData
-        const hasRemoteData = Boolean(settings) || pages.length > 0 || creators.length > 0 || news.length > 0 || products.length > 0 || staff.length > 0 || faqGroups.length > 0
+        const [settings, pages, creators, news, products, staff, faqGroups, quizQuestions, quizResults] = firestoreData
+        const hasRemoteData = Boolean(settings) || pages.length > 0 || creators.length > 0 || news.length > 0 || products.length > 0 || staff.length > 0 || faqGroups.length > 0 || quizQuestions.length > 0 || quizResults.length > 0
 
         if (hasRemoteData) {
           siteDataHydratedRef.current = true
@@ -501,7 +537,9 @@ export default function App() {
             news: normalizeNews(news.length ? news : current.news || []),
             products: products.length ? products : current.products || defaultShopProducts,
             staff: staff.length ? normalizeStaff(staff) : current.staff || defaultStaff,
-            faqGroups: faqGroups.length ? faqGroups : current.faqGroups || defaultFaqState
+            faqGroups: faqGroups.length ? faqGroups : current.faqGroups || defaultFaqState,
+            quizQuestions: quizQuestions.length ? quizQuestions : current.quizQuestions || defaultQuizQuestions,
+            quizResults: quizResults.length ? quizResults : current.quizResults || defaultQuizResults
           }))
           return
         }
@@ -915,6 +953,40 @@ export default function App() {
     window.location.href = '/auth/discord'
   }
 
+  const handleQuizSubmit = async (result) => {
+    if (!result || !loggedUser?.id) return null
+
+    const finalResult = {
+      id: `quiz-result-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+      discordId: String(loggedUser.id),
+      userName: loggedUser.name || loggedUser.username || 'مستخدم',
+      avatar: loggedUser.avatar || null,
+      passed: Boolean(result.passed),
+      score: Number(result.score || 0),
+      total: Number(result.total || 0),
+      answers: result.answers || {},
+      submittedAt: result.submittedAt || new Date().toISOString(),
+      roleId: '1542968359266811944',
+      reviewed: false
+    }
+
+    setSiteData((current) => ({
+      ...current,
+      quizResults: [finalResult, ...(current.quizResults || [])].slice(0, 200)
+    }))
+
+    try {
+      const saved = await saveQuizResultsToFirestore([finalResult, ...(siteData.quizResults || [])].slice(0, 200))
+      if (saved) {
+        setSiteData((current) => ({ ...current, quizResults: saved.slice(0, 200) }))
+      }
+    } catch {
+      // local state is already updated above
+    }
+
+    return finalResult
+  }
+
   const handleLogout = async () => {
     const currentUserId = loggedUser?.id
     setLoggedUser(null)
@@ -1206,7 +1278,14 @@ export default function App() {
         <Faq groups={siteData.faqGroups || defaultFaqGroups} />
       </>
     )
-    if (page.type === 'quiz') return <section className="dynamic-page-shell"><div className="dynamic-page-card"><span className="dynamic-page-badge">{page.name}</span><h2>{page.name}</h2><p>{page.description}</p><div className="dynamic-page-grid"><article><strong>الاختبارات الحالية</strong><p>اختبارات خاصة بالمواصفات والمهارات داخل المجتمع.</p></article><article><strong>التقييم</strong><p>يتم تصنيف المشاركين بناءً على جودة إجاباتهم ومهاراتهم.</p></article></div></div></section>
+    if (page.type === 'quiz') return (
+      <QuizPage
+        loggedUser={loggedUser}
+        questions={siteData.quizQuestions || defaultQuizQuestions}
+        onSubmitResult={handleQuizSubmit}
+        onLogin={handleLogin}
+      />
+    )
     if (page.type === 'tournaments') return <section className="dynamic-page-shell"><div className="dynamic-page-card"><span className="dynamic-page-badge">{page.name}</span><h2>{page.name}</h2><p>{page.description}</p><div className="dynamic-page-grid"><article><strong>فعاليات قادمة</strong><p>بطولات يومية وأسبوعية مع جوائز ومزايا خاصة.</p></article><article><strong>التسجيل</strong><p>يمكن للعضو التقديم عبر الديسكورد أو من الموقع مباشرة.</p></article></div></div></section>
 
     return renderCustomPage(page)
