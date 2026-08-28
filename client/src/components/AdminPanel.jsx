@@ -209,6 +209,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   })
 
   const [faqGroups, setFaqGroups] = useState(Array.isArray(data?.faqGroups) && data.faqGroups.length ? data.faqGroups : defaultFaqGroups)
+  const [faqDraftGroups, setFaqDraftGroups] = useState(Array.isArray(data?.faqGroups) && data.faqGroups.length ? data.faqGroups : defaultFaqGroups)
 
   const [shopForm, setShopForm] = useState({
     id: null,
@@ -239,7 +240,9 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     setNews(data?.news || [])
     setShopProducts(data?.products || [])
     setSettings(data?.settings || {})
-    setFaqGroups(Array.isArray(data?.faqGroups) && data.faqGroups.length ? data.faqGroups : defaultFaqGroups)
+    const nextFaqGroups = Array.isArray(data?.faqGroups) && data.faqGroups.length ? data.faqGroups : defaultFaqGroups
+    setFaqGroups(nextFaqGroups)
+    setFaqDraftGroups(nextFaqGroups)
   }, [data])
 
   useEffect(() => {
@@ -1569,50 +1572,64 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
           <div className="panel-card">
             <div className="panel-title-row">
               <h3>إدارة الأسئلة الشائعة</h3>
-              <button type="button" className="mini-btn" onClick={() => {
-                const title = window.prompt('اسم قسم الأسئلة الجديد؟')
-                if (!title) return
-                const cleanTitle = title.trim()
-                const nextGroups = [...faqGroups, { id: `faq-group-${Date.now()}`, title: cleanTitle, items: [] }]
-                setFaqGroups(nextGroups)
-                commitData(pages, users, creators, news, settings, shopProducts, staff, nextGroups)
-                notify('success', `تمت إضافة قسم الأسئلة: ${cleanTitle}`)
-              }}>+ قسم جديد</button>
+              <div className="row-actions">
+                <button
+                  type="button"
+                  className="mini-btn"
+                  onClick={() => {
+                    const title = window.prompt('اسم قسم الأسئلة الجديد؟')
+                    if (!title) return
+                    const cleanTitle = title.trim()
+                    const nextGroups = [...faqDraftGroups, { id: `faq-group-${Date.now()}`, title: cleanTitle, items: [] }]
+                    setFaqDraftGroups(nextGroups)
+                    notify('success', `تمت إضافة قسم الأسئلة: ${cleanTitle}`)
+                  }}
+                >
+                  + قسم جديد
+                </button>
+                <button
+                  type="button"
+                  className="mini-btn primary"
+                  onClick={() => {
+                    setFaqGroups(faqDraftGroups)
+                    commitData(pages, users, creators, news, settings, shopProducts, staff, faqDraftGroups)
+                    notify('success', 'تم حفظ تعديلات الأسئلة بنجاح.')
+                  }}
+                >
+                  حفظ
+                </button>
+              </div>
             </div>
 
             <div className="faq-admin-groups">
-              {faqGroups.map((group, groupIndex) => (
+              {faqDraftGroups.map((group, groupIndex) => (
                 <div key={group.id || `${group.title}-${groupIndex}`} className="faq-admin-group">
                   <div className="faq-admin-header">
                     <input
                       type="text"
                       value={group.title}
                       onChange={(event) => {
-                        const nextGroups = faqGroups.map((item) => item.id === group.id ? { ...item, title: event.target.value } : item)
-                        setFaqGroups(nextGroups)
-                        commitData(pages, users, creators, news, settings, shopProducts, staff, nextGroups)
+                        const nextGroups = faqDraftGroups.map((item) => item.id === group.id ? { ...item, title: event.target.value } : item)
+                        setFaqDraftGroups(nextGroups)
                       }}
                       placeholder="عنوان القسم"
                     />
                     <div className="row-actions">
                       <button type="button" className="mini-btn" onClick={() => {
-                        const nextGroups = [...faqGroups]
+                        const nextGroups = [...faqDraftGroups]
                         const [item] = nextGroups.splice(groupIndex, 1)
                         nextGroups.splice(Math.max(0, groupIndex - 1), 0, item)
-                        setFaqGroups(nextGroups)
-                        commitData(pages, users, creators, news, settings, shopProducts, staff, nextGroups)
+                        setFaqDraftGroups(nextGroups)
                       }} disabled={groupIndex === 0}>↑</button>
                       <button type="button" className="mini-btn" onClick={() => {
-                        const nextGroups = [...faqGroups]
+                        const nextGroups = [...faqDraftGroups]
                         const [item] = nextGroups.splice(groupIndex, 1)
                         nextGroups.splice(Math.min(nextGroups.length, groupIndex + 1), 0, item)
-                        setFaqGroups(nextGroups)
-                        commitData(pages, users, creators, news, settings, shopProducts, staff, nextGroups)
-                      }} disabled={groupIndex === faqGroups.length - 1}>↓</button>
+                        setFaqDraftGroups(nextGroups)
+                      }} disabled={groupIndex === faqDraftGroups.length - 1}>↓</button>
                       <button type="button" className="mini-btn danger" onClick={() => {
-                        const nextGroups = faqGroups.filter((item) => item.id !== group.id)
-                        setFaqGroups(nextGroups)
-                        commitData(pages, users, creators, news, settings, shopProducts, staff, nextGroups)
+                        const nextGroups = faqDraftGroups.filter((item) => item.id !== group.id)
+                        setFaqDraftGroups(nextGroups)
                       }}>حذف</button>
                     </div>
                   </div>
@@ -1624,12 +1641,11 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                           type="text"
                           value={item.question}
                           onChange={(event) => {
-                            const nextGroups = faqGroups.map((groupItem) => groupItem.id === group.id ? {
+                            const nextGroups = faqDraftGroups.map((groupItem) => groupItem.id === group.id ? {
                               ...groupItem,
                               items: (groupItem.items || []).map((questionItem) => questionItem.id === item.id ? { ...questionItem, question: event.target.value } : questionItem)
                             } : groupItem)
-                            setFaqGroups(nextGroups)
-                            commitData(pages, users, creators, news, settings, shopProducts, staff, nextGroups)
+                            setFaqDraftGroups(nextGroups)
                           }}
                           placeholder="سؤال"
                         />
@@ -1637,18 +1653,17 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                           rows="3"
                           value={item.answer}
                           onChange={(event) => {
-                            const nextGroups = faqGroups.map((groupItem) => groupItem.id === group.id ? {
+                            const nextGroups = faqDraftGroups.map((groupItem) => groupItem.id === group.id ? {
                               ...groupItem,
                               items: (groupItem.items || []).map((questionItem) => questionItem.id === item.id ? { ...questionItem, answer: event.target.value } : questionItem)
                             } : groupItem)
-                            setFaqGroups(nextGroups)
-                            commitData(pages, users, creators, news, settings, shopProducts, staff, nextGroups)
+                            setFaqDraftGroups(nextGroups)
                           }}
                           placeholder="إجابة السؤال"
                         />
                         <div className="row-actions">
                           <button type="button" className="mini-btn" onClick={() => {
-                            const nextGroups = faqGroups.map((groupItem) => groupItem.id === group.id ? {
+                            const nextGroups = faqDraftGroups.map((groupItem) => groupItem.id === group.id ? {
                               ...groupItem,
                               items: [...(groupItem.items || [])]
                             } : groupItem)
@@ -1656,11 +1671,10 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                             const [selected] = items.splice(itemIndex, 1)
                             items.splice(Math.max(0, itemIndex - 1), 0, selected)
                             nextGroups[groupIndex] = { ...nextGroups[groupIndex], items }
-                            setFaqGroups(nextGroups)
-                            commitData(pages, users, creators, news, settings, shopProducts, staff, nextGroups)
+                            setFaqDraftGroups(nextGroups)
                           }} disabled={itemIndex === 0}>↑</button>
                           <button type="button" className="mini-btn" onClick={() => {
-                            const nextGroups = faqGroups.map((groupItem) => groupItem.id === group.id ? {
+                            const nextGroups = faqDraftGroups.map((groupItem) => groupItem.id === group.id ? {
                               ...groupItem,
                               items: [...(groupItem.items || [])]
                             } : groupItem)
@@ -1668,16 +1682,14 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                             const [selected] = items.splice(itemIndex, 1)
                             items.splice(Math.min(items.length, itemIndex + 1), 0, selected)
                             nextGroups[groupIndex] = { ...nextGroups[groupIndex], items }
-                            setFaqGroups(nextGroups)
-                            commitData(pages, users, creators, news, settings, shopProducts, staff, nextGroups)
+                            setFaqDraftGroups(nextGroups)
                           }} disabled={itemIndex === (group.items || []).length - 1}>↓</button>
                           <button type="button" className="mini-btn danger" onClick={() => {
-                            const nextGroups = faqGroups.map((groupItem) => groupItem.id === group.id ? {
+                            const nextGroups = faqDraftGroups.map((groupItem) => groupItem.id === group.id ? {
                               ...groupItem,
                               items: (groupItem.items || []).filter((questionItem) => questionItem.id !== item.id)
                             } : groupItem)
-                            setFaqGroups(nextGroups)
-                            commitData(pages, users, creators, news, settings, shopProducts, staff, nextGroups)
+                            setFaqDraftGroups(nextGroups)
                           }}>حذف</button>
                         </div>
                       </div>
@@ -1685,12 +1697,11 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                   </div>
 
                   <button type="button" className="mini-btn" onClick={() => {
-                    const nextGroups = faqGroups.map((groupItem) => groupItem.id === group.id ? {
+                    const nextGroups = faqDraftGroups.map((groupItem) => groupItem.id === group.id ? {
                       ...groupItem,
                       items: [...(groupItem.items || []), { id: `faq-item-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`, question: 'سؤال جديد', answer: 'إجابة السؤال...' }]
                     } : groupItem)
-                    setFaqGroups(nextGroups)
-                    commitData(pages, users, creators, news, settings, shopProducts, staff, nextGroups)
+                    setFaqDraftGroups(nextGroups)
                   }}>+ إضافة سؤال</button>
                 </div>
               ))}

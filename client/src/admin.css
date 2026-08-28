@@ -98,6 +98,18 @@
   color: #edf3ff;
   border: 1px solid rgba(255,255,255,0.05);
   line-height: 1;
+  font-weight: 700;
+}
+
+.mini-btn.primary {
+  background: linear-gradient(135deg, rgba(157,77,255,0.22), rgba(111,108,255,0.24));
+  border-color: rgba(168,122,255,0.5);
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(118, 92, 255, 0.2);
+}
+
+.mini-btn.primary:hover {
+  background: linear-gradient(135deg, rgba(157,77,255,0.32), rgba(111,108,255,0.34));
 }
 
 .return-home-btn {
@@ -856,6 +868,14 @@
   flex-wrap: wrap;
   align-self: stretch;
   min-height: 100%;
+}
+
+.panel-title-row .row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .creator-editor {
