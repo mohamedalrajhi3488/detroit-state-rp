@@ -218,7 +218,7 @@ app.get('/api/discord/member-status', async (req, res) => {
     }
 
     if (!REQUIRE_GUILD_MEMBERSHIP || !TARGET_GUILD_ID || !BOT_TOKEN) {
-      return res.json({ member: true, status: 'member' })
+      return res.status(503).json({ member: false, status: 'not_in_guild', requires_setup: true })
     }
 
     try {

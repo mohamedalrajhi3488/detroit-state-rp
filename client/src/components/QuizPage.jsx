@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
 const buildScoreSummary = (questions, answers = {}) => {
   let correct = 0
@@ -20,10 +20,43 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
   const [submitted, setSubmitted] = useState(false)
   const [localResult, setLocalResult] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [guildStatus, setGuildStatus] = useState(String(loggedUser?.status || '').trim().toLowerCase())
+
+  useEffect(() => {
+    if (!loggedUser?.id) {
+      setGuildStatus('not_in_guild')
+      return
+    }
+
+    let active = true
+
+    const refreshGuildStatus = async () => {
+      try {
+        const response = await fetch('/api/discord/member-status', { credentials: 'same-origin' })
+        if (!response.ok) {
+          if (active) {
+            setGuildStatus('not_in_guild')
+          }
+          return
+        }
+
+        const data = await response.json()
+        if (!active) return
+        setGuildStatus(String(data?.status || 'not_in_guild').trim().toLowerCase())
+      } catch {
+        if (active) {
+          setGuildStatus('not_in_guild')
+        }
+      }
+    }
+
+    refreshGuildStatus()
+    return () => { active = false }
+  }, [loggedUser?.id, loggedUser?.status])
 
   const isLoggedIn = Boolean(loggedUser?.id)
-  const guildStatus = String(loggedUser?.status || '').trim().toLowerCase()
-  const isGuildVerified = isLoggedIn && guildStatus !== '' && guildStatus !== 'offline' && guildStatus !== 'not_in_guild' && guildStatus !== 'not_member' && guildStatus !== 'pending'
+  const normalizedGuildStatus = String(guildStatus || '').trim().toLowerCase()
+  const isGuildVerified = isLoggedIn && !['', 'offline', 'not_in_guild', 'not_member', 'pending', 'memberless'].includes(normalizedGuildStatus)
 
   const safeQuestions = Array.isArray(questions) ? questions : []
   const totalQuestions = safeQuestions.length

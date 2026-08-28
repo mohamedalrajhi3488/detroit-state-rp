@@ -426,6 +426,13 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     }
   }
 
+  const deleteQuizResult = (resultId) => {
+    const nextResults = (quizResults || []).filter((item) => String(item.id) !== String(resultId))
+    setQuizResults(nextResults)
+    commitData(pages, users, creators, news, settings, shopProducts, staff, faqGroups, quizQuestions, nextResults)
+    notify('success', 'تم حذف نتيجة الاختبار بنجاح.')
+  }
+
   const resolveActivityAvatar = (entry) => {
     if (entry?.avatar) return entry.avatar
 
@@ -1768,9 +1775,12 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                       </div>
                       <div className="row-actions">
                         <button type="button" className="mini-btn" onClick={() => setExpandedResultId(expandedResultId === result.id ? null : result.id)}>تفاصيل</button>
-                        {!result.reviewed && result.passed && (
-                          <button type="button" className="mini-btn primary" onClick={() => awardQuizRole(result)}>منح الرتبة</button>
+                        {result.passed && (
+                          <button type="button" className="mini-btn primary" onClick={() => awardQuizRole(result)} disabled={Boolean(result.reviewed || result.roleGranted)}>
+                            {result.reviewed || result.roleGranted ? 'تم المنح' : 'منح الرتبة'}
+                          </button>
                         )}
+                        <button type="button" className="mini-btn danger" onClick={() => deleteQuizResult(result.id)}>حذف</button>
                       </div>
                     </div>
 
