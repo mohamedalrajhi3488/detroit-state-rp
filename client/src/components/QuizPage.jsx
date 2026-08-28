@@ -91,7 +91,6 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
       setGuildStatus(nextStatus)
 
       if (data?.member === true && nextStatus !== 'not_in_guild') {
-        setLoggedUser((current) => (current ? { ...current, status: nextStatus } : current))
         setTimeout(() => {
           window.location.reload()
         }, 700)
