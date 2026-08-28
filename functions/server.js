@@ -9,10 +9,14 @@ require('dotenv').config();
 const app = express();
 const router = express.Router();
 
-const CLIENT_ID = process.env.CLIENT_ID || '1201078666411638804';
-const CLIENT_SECRET = process.env.CLIENT_SECRET || 'DLNKuPOgZ6qVn7KIBrFEXYRtSjzfvx-K';
-const JWT_SECRET = process.env.JWT_SECRET || process.env.CLIENT_SECRET || 'top-life-secret-key-fallback';
-const REQUIRE_GUILD_MEMBERSHIP = String(process.env.REQUIRE_GUILD_MEMBERSHIP || 'false').toLowerCase() === 'true';
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const BOT_TOKEN = process.env.BOT_TOKEN || process.env.DISCORD_TOKEN;
+const TARGET_GUILD_ID = process.env.TARGET_GUILD_ID;
+const JWT_SECRET = process.env.JWT_SECRET || process.env.CLIENT_SECRET || 'dsrp-login-secret';
+const REQUIRE_GUILD_MEMBERSHIP = String(
+    process.env.REQUIRE_GUILD_MEMBERSHIP || (BOT_TOKEN && TARGET_GUILD_ID ? 'true' : 'false')
+).toLowerCase() === 'true';
 
 // Determine domain defensively
 const getRedirectUri = (req) => {
