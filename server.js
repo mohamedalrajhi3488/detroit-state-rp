@@ -205,6 +205,40 @@ app.get('/api/registered-users', (req, res) => {
   res.json(getRegisteredUsers())
 })
 
+app.get('/api/discord/member-status', async (req, res) => {
+  const token = req.cookies && req.cookies.sid
+  if (!token) {
+    return res.status(401).json({ error: 'not_logged_in' })
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET)
+    if (!decoded?.id) {
+      return res.status(401).json({ error: 'invalid_session' })
+    }
+
+    if (!REQUIRE_GUILD_MEMBERSHIP || !TARGET_GUILD_ID || !BOT_TOKEN) {
+      return res.json({ member: true, status: 'member' })
+    }
+
+    try {
+      const memberResp = await axios.get(`https://discord.com/api/guilds/${TARGET_GUILD_ID}/members/${decoded.id}`, {
+        headers: { Authorization: `Bot ${BOT_TOKEN}` }
+      })
+      const member = memberResp.data || {}
+      const status = member.status || member.presence?.status || member.user?.presence?.status || 'member'
+      return res.json({ member: true, status })
+    } catch (error) {
+      if (error.response && (error.response.status === 404 || error.response.status === 403)) {
+        return res.json({ member: false, status: 'not_in_guild' })
+      }
+      return res.status(500).json({ error: 'guild_status_check_failed', details: error.response ? error.response.data : error.message })
+    }
+  } catch {
+    return res.status(401).json({ error: 'invalid_session' })
+  }
+})
+
 app.post('/api/discord/assign-role', async (req, res) => {
   const { userId, roleId } = req.body || {}
 

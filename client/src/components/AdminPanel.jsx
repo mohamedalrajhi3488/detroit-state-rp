@@ -120,6 +120,20 @@ const normalizeUserRole = (role) => {
   return 'Member'
 }
 
+const formatQuizResultDate = (value) => {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  }).format(date)
+}
+
 const resolvePageType = (page, fallbackIndex = 0) => {
   const id = String(page?.id || '').trim().toLowerCase()
   const name = String(page?.name || '').trim()
@@ -1723,42 +1737,6 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                 setQuizDraftQuestions(nextQuestions)
               }}>+ إضافة سؤال</button>
             </div>
-
-            <div className="panel-title-row" style={{ marginTop: '2rem' }}>
-              <h3>نتائج الاختبار</h3>
-            </div>
-
-            <div className="faq-admin-items">
-              {(quizResults || []).map((result) => (
-                <div key={result.id} className="faq-admin-item" style={{ padding: '1rem' }}>
-                  <div className="panel-title-row" style={{ alignItems: 'center' }}>
-                    <div>
-                      <strong>{result.userName || 'مستخدم'}</strong>
-                      <small style={{ display: 'block' }}>الدرجة: {result.score || 0}/{result.total || 0} • {result.passed ? 'نجح' : 'لم ينجح'}</small>
-                    </div>
-                    <div className="row-actions">
-                      <button type="button" className="mini-btn" onClick={() => setExpandedResultId(expandedResultId === result.id ? null : result.id)}>تفاصيل</button>
-                      {!result.reviewed && result.passed && (
-                        <button type="button" className="mini-btn primary" onClick={() => awardQuizRole(result)}>منح الرتبة</button>
-                      )}
-                    </div>
-                  </div>
-
-                  {expandedResultId === result.id && (
-                    <div style={{ marginTop: '0.75rem' }}>
-                      <p><strong>تاريخ الإرسال:</strong> {new Date(result.submittedAt || Date.now()).toLocaleString('ar-EG')}</p>
-                      <div>
-                        {Object.entries(result.answers || {}).map(([questionId, answerIndex]) => (
-                          <div key={questionId} style={{ marginBottom: '0.4rem' }}>
-                            <small>السؤال {questionId}: الإجابة رقم {Number(answerIndex) + 1}</small>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
           </div>
         )}
 
@@ -1775,35 +1753,59 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                 </div>
               )}
 
-              {(quizResults || []).map((result) => (
-                <div key={result.id} className="faq-admin-item" style={{ padding: '1rem' }}>
-                  <div className="panel-title-row" style={{ alignItems: 'center' }}>
-                    <div>
-                      <strong>{result.userName || 'مستخدم'}</strong>
-                      <small style={{ display: 'block' }}>الدرجة: {result.score || 0}/{result.total || 0} • {result.passed ? 'نجح' : 'لم ينجح'}</small>
-                    </div>
-                    <div className="row-actions">
-                      <button type="button" className="mini-btn" onClick={() => setExpandedResultId(expandedResultId === result.id ? null : result.id)}>تفاصيل</button>
-                      {!result.reviewed && result.passed && (
-                        <button type="button" className="mini-btn primary" onClick={() => awardQuizRole(result)}>منح الرتبة</button>
-                      )}
-                    </div>
-                  </div>
+              {(quizResults || []).map((result) => {
+                const avatar = result.avatar || '/img/DS.webp'
 
-                  {expandedResultId === result.id && (
-                    <div style={{ marginTop: '0.75rem' }}>
-                      <p><strong>تاريخ الإرسال:</strong> {new Date(result.submittedAt || Date.now()).toLocaleString('ar-EG')}</p>
-                      <div>
-                        {Object.entries(result.answers || {}).map(([questionId, answerIndex]) => (
-                          <div key={questionId} style={{ marginBottom: '0.4rem' }}>
-                            <small>السؤال {questionId}: الإجابة رقم {Number(answerIndex) + 1}</small>
-                          </div>
-                        ))}
+                return (
+                  <div key={result.id} className="faq-admin-item" style={{ padding: '1rem' }}>
+                    <div className="panel-title-row" style={{ alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <img src={avatar} alt={result.userName || 'user'} style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover' }} />
+                        <div>
+                          <strong>{result.userName || 'مستخدم'}</strong>
+                          <small style={{ display: 'block' }}>الدرجة: {result.score || 0}/{result.total || 0} • {result.passed ? 'نجح' : 'لم ينجح'}</small>
+                        </div>
+                      </div>
+                      <div className="row-actions">
+                        <button type="button" className="mini-btn" onClick={() => setExpandedResultId(expandedResultId === result.id ? null : result.id)}>تفاصيل</button>
+                        {!result.reviewed && result.passed && (
+                          <button type="button" className="mini-btn primary" onClick={() => awardQuizRole(result)}>منح الرتبة</button>
+                        )}
                       </div>
                     </div>
-                  )}
-                </div>
-              ))}
+
+                    {expandedResultId === result.id && (
+                      <div style={{ marginTop: '0.75rem' }}>
+                        <p><strong>تاريخ الإرسال:</strong> {formatQuizResultDate(result.submittedAt || Date.now())}</p>
+                        <div style={{ display: 'grid', gap: '0.75rem' }}>
+                          {(quizQuestions || []).map((question, index) => {
+                            const answerIndex = Number(result.answers?.[question.id])
+                            const selectedOption = Array.isArray(question.options) ? question.options[answerIndex] : 'لا توجد إجابة'
+                            const correctIndex = Number(question.correctIndex)
+                            const correctOption = Array.isArray(question.options) ? question.options[correctIndex] : '—'
+                            const isCorrect = answerIndex === correctIndex
+
+                            return (
+                              <div key={`${result.id}-${question.id || index}`} style={{ padding: '0.75rem', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                <p style={{ margin: '0 0 0.5rem', fontWeight: 700 }}>{index + 1}. {question.question || 'سؤال'}</p>
+                                <p style={{ margin: '0.15rem 0', color: isCorrect ? '#7ee7a8' : '#ffd3d3' }}>
+                                  الإجابة المختارة: {selectedOption}
+                                </p>
+                                <p style={{ margin: '0.15rem 0', color: '#d8d9ff' }}>
+                                  الإجابة الصحيحة: {correctOption}
+                                </p>
+                                <small style={{ color: isCorrect ? '#7ee7a8' : '#ffd3d3' }}>
+                                  {isCorrect ? 'إجابة صحيحة' : 'إجابة غير صحيحة'}
+                                </small>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}

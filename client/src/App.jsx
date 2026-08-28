@@ -778,6 +778,19 @@ export default function App() {
         const data = await res.json()
         if (!active) return
 
+        let liveGuildStatus = data.status || 'offline'
+        try {
+          const guildStatusRes = await fetch('/api/discord/member-status', { credentials: 'same-origin' })
+          if (guildStatusRes.ok) {
+            const guildStatusData = await guildStatusRes.json()
+            if (guildStatusData && typeof guildStatusData.status === 'string') {
+              liveGuildStatus = guildStatusData.status
+            }
+          }
+        } catch {
+          // ignore membership refresh issues and keep the JWT status as fallback
+        }
+
         const matchedStoredUser = Array.isArray(siteData.users)
           ? siteData.users.find((userItem) => String(userItem.id) === String(data.id))
           : null
@@ -798,7 +811,7 @@ export default function App() {
           email: data.email || `${(data.username || 'user').toLowerCase()}@discord`,
           avatar: buildDiscordAvatar(data),
           role: resolvedRole,
-          status: data.status || 'offline'
+          status: liveGuildStatus
         }
 
         setLoggedUser(resolvedUser)
@@ -822,8 +835,27 @@ export default function App() {
     }
 
     loadDiscordUser()
-    return () => { active = false }
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        loadDiscordUser()
+      }
+    }, 20000)
+    return () => { active = false; window.clearInterval(intervalId) }
   }, [])
+
+  useEffect(() => {
+    if (currentPage === 'quiz' || screen === 'quiz') {
+      fetch('/api/discord/member-status', { credentials: 'same-origin' })
+        .then((response) => response.ok ? response.json() : null)
+        .then((data) => {
+          if (!data || typeof data.status !== 'string') return
+          setLoggedUser((current) => (current ? { ...current, status: data.status } : current))
+        })
+        .catch(() => {
+          // ignore guild status refresh errors; the server-side gate is enforced in the quiz page itself
+        })
+    }
+  }, [currentPage, screen])
 
   useEffect(() => {
     const syncHash = () => {
