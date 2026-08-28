@@ -185,7 +185,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
   if (!isGuildVerified) {
     return renderHeroShell(
       'يجب أن تكون عضو في السيرفر',
-      'لا يمكنك إكمال الاختبار إلا بعد التحقق من عضويتك في سيرفر Detroit State عبر البوت.',
+      'لا يمكنك إكمال الاختبار إلا بعد التحقق من عضويتك في سيرفر Detroit State.',
       <button type="button" className="quiz-primary-btn" onClick={handleVerifyMembership} disabled={isVerifyingMembership}>
         {isVerifyingMembership ? 'جاري التحقق...' : 'التحقق من العضوية'}
       </button>

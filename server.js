@@ -28,7 +28,9 @@ const REDIRECT_URI = process.env.REDIRECT_URI || 'https://dsrp.up.railway.app/au
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const TARGET_GUILD_ID = process.env.TARGET_GUILD_ID;
 const JWT_SECRET = process.env.JWT_SECRET || process.env.CLIENT_SECRET || 'dsrp-login-secret';
-const REQUIRE_GUILD_MEMBERSHIP = String(process.env.REQUIRE_GUILD_MEMBERSHIP || 'false').toLowerCase() === 'true';
+const REQUIRE_GUILD_MEMBERSHIP = String(
+  process.env.REQUIRE_GUILD_MEMBERSHIP || (BOT_TOKEN && TARGET_GUILD_ID ? 'true' : 'false')
+).toLowerCase() === 'true';
 const ACTIVITY_LOG = [];
 const REGISTERED_USERS = new Map();
 
