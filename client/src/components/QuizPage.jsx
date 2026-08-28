@@ -105,31 +105,43 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     setSubmitting(false)
   }
 
+  const renderHeroShell = (title, message, actionNode) => (
+    <section className="faq-page-shell">
+      <div className="faq-page-inner">
+        <header className="faq-header faq-hero-shell">
+          <div
+            className="faq-hero-background"
+            style={{
+              backgroundImage: "linear-gradient(90deg, rgba(10, 6, 18, 0.8), rgba(10, 6, 18, 0.36)), url('/img/banner.png')"
+            }}
+          />
+
+          <div className="faq-hero-content" style={{ gap: '10px' }}>
+            <span className="faq-eyebrow">الاختبار الإلكتروني</span>
+            <h1>{title}</h1>
+            <p>{message}</p>
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: '3rem' }}>{actionNode}</div>
+          </div>
+        </header>
+      </div>
+    </section>
+  )
+
   if (!isLoggedIn) {
-    return (
-      <section className="quiz-gate-shell">
-        <div className="quiz-gate-card">
-          <div className="quiz-gate-icon">🔒</div>
-          <h1>يجب تسجيل الدخول أولاً</h1>
-          <p>لا يمكنك بدء اختبار Detroit State إلا بعد تسجيل الدخول من خلال حسابك في الديسكورد.</p>
-          <button type="button" className="quiz-primary-btn" onClick={onLogin}>تسجيل الدخول</button>
-        </div>
-      </section>
+    return renderHeroShell(
+      'يجب تسجيل الدخول أولاً',
+      'لا يمكنك بدء اختبار Detroit State إلا بعد تسجيل الدخول     .',
+      <button type="button" className="quiz-primary-btn" onClick={onLogin}>تسجيل الدخول</button>
     )
   }
 
   if (!isGuildVerified) {
-    return (
-      <section className="quiz-gate-shell">
-        <div className="quiz-gate-card">
-          <div className="quiz-gate-icon">🛡️</div>
-          <h1>يجب أن تكون عضو في السيرفر</h1>
-          <p>لا يمكنك إكمال الاختبار إلا بعد التحقق من عضويتك في سيرفر Detroit State عبر البوت.</p>
-          <button type="button" className="quiz-primary-btn" onClick={() => window.location.href = '/auth/discord'}>
-            التحقق من العضوية
-          </button>
-        </div>
-      </section>
+    return renderHeroShell(
+      'يجب أن تكون عضو في السيرفر',
+      'لا يمكنك إكمال الاختبار إلا بعد التحقق من عضويتك في سيرفر Detroit State عبر البوت.',
+      <button type="button" className="quiz-primary-btn" onClick={() => window.location.href = '/auth/discord'}>
+        التحقق من العضوية
+      </button>
     )
   }
 
@@ -154,16 +166,31 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
 
   if (!started) {
     return (
-      <section className="quiz-page-shell">
-        <div className="quiz-intro-card">
-          <div className="quiz-gate-icon">🧠</div>
-          <h1>اختبار Detroit State</h1>
-          <p>قبل أن تبدأ الاختبار، تأكد من أنك عضو فعلي في السيرفر وأنك مستعد للإجابة على الأسئلة بشكل صحيح.</p>
-          <div className="quiz-intro-meta">
-            <span>{safeQuestions.length} أسئلة</span>
-            <span>الحد الأدنى للنجاح: {Math.ceil(safeQuestions.length * 0.7)}/ {safeQuestions.length}</span>
+      <section className="faq-page-shell">
+        <div className="faq-page-inner">
+          <header className="faq-header faq-hero-shell">
+            <div
+              className="faq-hero-background"
+              style={{
+                backgroundImage: "linear-gradient(90deg, rgba(10, 6, 18, 0.8), rgba(10, 6, 18, 0.36)), url('/img/banner.png')"
+              }}
+            />
+
+            <div className="faq-hero-content">
+              <span className="faq-eyebrow">الاختبار الإلكتروني</span>
+              <h1>اختبار Detroit State</h1>
+              <p>قبل أن تبدأ الاختبار، تأكد من أنك عضو فعلي في السيرفر وأنك مستعد للإجابة على الأسئلة بشكل صحيح.</p>
+            </div>
+          </header>
+
+          <div className="quiz-intro-card" style={{ marginTop: '1.5rem' }}>
+            <div className="quiz-gate-icon">🧠</div>
+            <div className="quiz-intro-meta">
+              <span>{safeQuestions.length} أسئلة</span>
+              <span>الحد الأدنى للنجاح: {Math.ceil(safeQuestions.length * 0.7)}/ {safeQuestions.length}</span>
+            </div>
+            <button type="button" className="quiz-primary-btn" onClick={() => setStarted(true)}>ابدأ الاختبار</button>
           </div>
-          <button type="button" className="quiz-primary-btn" onClick={() => setStarted(true)}>ابدأ الاختبار</button>
         </div>
       </section>
     )

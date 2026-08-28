@@ -3726,6 +3726,10 @@ img { max-width: 100%; display: block; }
 
 .quiz-primary-btn {
   appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
   border: none;
   border-radius: 16px;
   padding: 0.95rem 1.55rem;
