@@ -73,6 +73,26 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     }))
   }
 
+  const handleVerifyMembership = async () => {
+    try {
+      const response = await fetch('/api/discord/member-status', { credentials: 'same-origin' })
+      if (response.ok) {
+        const data = await response.json()
+        const nextStatus = String(data?.status || 'not_in_guild').trim().toLowerCase()
+        setGuildStatus(nextStatus)
+
+        if (data?.member === true || nextStatus !== 'not_in_guild') {
+          window.location.reload()
+          return
+        }
+      }
+    } catch {
+      // fall through to Discord OAuth when the status check itself fails
+    }
+
+    window.location.href = '/auth/discord'
+  }
+
   const handleSubmit = async () => {
     if (!isLoggedIn || !isGuildVerified || !safeQuestions.length) return
 
@@ -116,11 +136,11 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
             }}
           />
 
-          <div className="faq-hero-content" style={{ gap: '10px' }}>
+          <div className="faq-hero-content" style={{ gap: '18px' }}>
             <span className="faq-eyebrow">الاختبار الإلكتروني</span>
             <h1>{title}</h1>
-            <p>{message}</p>
-            <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: '3rem' }}>{actionNode}</div>
+            <p style={{ margin: 0 }}>{message}</p>
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: '1rem' }}>{actionNode}</div>
           </div>
         </header>
       </div>
@@ -139,7 +159,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     return renderHeroShell(
       'يجب أن تكون عضو في السيرفر',
       'لا يمكنك إكمال الاختبار إلا بعد التحقق من عضويتك في سيرفر Detroit State عبر البوت.',
-      <button type="button" className="quiz-primary-btn" onClick={() => window.location.href = '/auth/discord'}>
+      <button type="button" className="quiz-primary-btn" onClick={handleVerifyMembership}>
         التحقق من العضوية
       </button>
     )
