@@ -210,6 +210,8 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
 
   const [faqGroups, setFaqGroups] = useState(Array.isArray(data?.faqGroups) && data.faqGroups.length ? data.faqGroups : defaultFaqGroups)
   const [faqDraftGroups, setFaqDraftGroups] = useState(Array.isArray(data?.faqGroups) && data.faqGroups.length ? data.faqGroups : defaultFaqGroups)
+  const [faqGroupModalOpen, setFaqGroupModalOpen] = useState(false)
+  const [faqGroupForm, setFaqGroupForm] = useState({ title: '' })
 
   const [shopForm, setShopForm] = useState({
     id: null,
@@ -1573,39 +1575,75 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
         )}
 
         {selectedTab === 'faq' && (
-          <div className="panel-card">
-            <div className="panel-title-row">
-              <h3>إدارة الأسئلة الشائعة</h3>
-              <div className="row-actions">
-                <button
-                  type="button"
-                  className="mini-btn"
-                  onClick={() => {
-                    const title = window.prompt('اسم قسم الأسئلة الجديد؟')
-                    if (!title) return
-                    const cleanTitle = title.trim()
-                    const nextGroups = [...faqDraftGroups, { id: `faq-group-${Date.now()}`, title: cleanTitle, items: [] }]
-                    setFaqDraftGroups(nextGroups)
-                    notify('success', `تمت إضافة قسم الأسئلة: ${cleanTitle}`)
-                  }}
-                >
-                  + قسم جديد
-                </button>
-                <button
-                  type="button"
-                  className="mini-btn primary"
-                  onClick={() => {
-                    setFaqGroups(faqDraftGroups)
-                    commitData(pages, users, creators, news, settings, shopProducts, staff, faqDraftGroups)
-                    notify('success', 'تم حفظ تعديلات الأسئلة بنجاح.')
-                  }}
-                >
-                  حفظ
-                </button>
-              </div>
-            </div>
+          <>
+            {faqGroupModalOpen && (
+              <div className="faq-modal-overlay" onClick={() => setFaqGroupModalOpen(false)}>
+                <div className="faq-modal-card" onClick={(event) => event.stopPropagation()}>
+                  <div className="faq-modal-header">
+                    <h4>إضافة قسم جديد</h4>
+                    <button type="button" className="mini-btn" onClick={() => setFaqGroupModalOpen(false)}>إغلاق</button>
+                  </div>
 
-            <div className="faq-admin-groups">
+                  <form
+                    className="faq-modal-form"
+                    onSubmit={(event) => {
+                      event.preventDefault()
+                      const cleanTitle = faqGroupForm.title.trim()
+                      if (!cleanTitle) return
+
+                      const nextGroups = [...faqDraftGroups, { id: `faq-group-${Date.now()}`, title: cleanTitle, items: [] }]
+                      setFaqDraftGroups(nextGroups)
+                      setFaqGroupForm({ title: '' })
+                      setFaqGroupModalOpen(false)
+                      notify('success', `تمت إضافة قسم الأسئلة: ${cleanTitle}`)
+                    }}
+                  >
+                    <label className="faq-modal-field">
+                      <span>اسم القسم</span>
+                      <input
+                        type="text"
+                        value={faqGroupForm.title}
+                        onChange={(event) => setFaqGroupForm({ title: event.target.value })}
+                        placeholder="مثال: التفعيل والبدء"
+                        autoFocus
+                      />
+                    </label>
+
+                    <div className="faq-modal-actions">
+                      <button type="button" className="mini-btn" onClick={() => setFaqGroupModalOpen(false)}>Cancel</button>
+                      <button type="submit" className="mini-btn primary">OK</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            <div className="panel-card">
+              <div className="panel-title-row">
+                <h3>إدارة الأسئلة الشائعة</h3>
+                <div className="row-actions">
+                  <button
+                    type="button"
+                    className="mini-btn"
+                    onClick={() => setFaqGroupModalOpen(true)}
+                  >
+                    + قسم جديد
+                  </button>
+                  <button
+                    type="button"
+                    className="mini-btn primary"
+                    onClick={() => {
+                      setFaqGroups(faqDraftGroups)
+                      commitData(pages, users, creators, news, settings, shopProducts, staff, faqDraftGroups)
+                      notify('success', 'تم حفظ تعديلات الأسئلة بنجاح.')
+                    }}
+                  >
+                    حفظ
+                  </button>
+                </div>
+              </div>
+
+              <div className="faq-admin-groups">
               {faqDraftGroups.map((group, groupIndex) => (
                 <div key={group.id || `${group.title}-${groupIndex}`} className="faq-admin-group">
                   <div className="faq-admin-header">
@@ -1711,6 +1749,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
               ))}
             </div>
           </div>
+          </>
         )}
 
         {selectedTab === 'shop' && (
