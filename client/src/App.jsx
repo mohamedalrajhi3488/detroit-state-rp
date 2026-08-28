@@ -21,6 +21,7 @@ import {
   getCreatorsFromFirestore,
   getUsersFromFirestore,
   getStaffFromFirestore,
+  getFaqGroupsFromFirestore,
   saveActivityToFirestore,
   saveCreatorsToFirestore,
   saveNewsToFirestore,
@@ -31,7 +32,8 @@ import {
   saveUserToFirestore,
   saveUsersToFirestore,
   getNewsFromFirestore,
-  getShopProductsFromFirestore
+  getShopProductsFromFirestore,
+  saveFaqGroupsToFirestore
 } from './firebase'
 import './style.css'
 import './admin.css'
@@ -482,11 +484,12 @@ export default function App() {
           getCreatorsFromFirestore(),
           getNewsFromFirestore(),
           getShopProductsFromFirestore(),
-          getStaffFromFirestore()
+          getStaffFromFirestore(),
+          getFaqGroupsFromFirestore()
         ])
 
-        const [settings, pages, creators, news, products, staff] = firestoreData
-        const hasRemoteData = Boolean(settings) || pages.length > 0 || creators.length > 0 || news.length > 0 || products.length > 0 || staff.length > 0
+        const [settings, pages, creators, news, products, staff, faqGroups] = firestoreData
+        const hasRemoteData = Boolean(settings) || pages.length > 0 || creators.length > 0 || news.length > 0 || products.length > 0 || staff.length > 0 || faqGroups.length > 0
 
         if (hasRemoteData) {
           siteDataHydratedRef.current = true
@@ -497,7 +500,8 @@ export default function App() {
             creators: creators.length ? creators : current.creators || defaultCreators,
             news: normalizeNews(news.length ? news : current.news || []),
             products: products.length ? products : current.products || defaultShopProducts,
-            staff: staff.length ? normalizeStaff(staff) : current.staff || defaultStaff
+            staff: staff.length ? normalizeStaff(staff) : current.staff || defaultStaff,
+            faqGroups: faqGroups.length ? faqGroups : current.faqGroups || defaultFaqState
           }))
           return
         }

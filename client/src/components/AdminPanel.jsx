@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { defaultFaqGroups } from './Faq'
-import { savePagesToFirestore, saveShopProductsToFirestore, saveCreatorsToFirestore, saveNewsToFirestore, saveUsersToFirestore, saveStaffToFirestore } from '../firebase'
+import { savePagesToFirestore, saveShopProductsToFirestore, saveCreatorsToFirestore, saveNewsToFirestore, saveUsersToFirestore, saveStaffToFirestore, saveFaqGroupsToFirestore } from '../firebase'
 
 const formatNumericActivityTime = (value) => {
   const date = new Date(value)
@@ -333,6 +333,10 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
 
     if (Array.isArray(nextStaff)) {
       saveStaffToFirestore(nextStaff).catch((err) => { console.warn('saveStaffToFirestore error:', err); notify('error', 'فشل حفظ الطاقم الإداري إلى Firestore.'); })
+    }
+
+    if (Array.isArray(nextFaqGroups)) {
+      saveFaqGroupsToFirestore(nextFaqGroups).catch((err) => { console.warn('saveFaqGroupsToFirestore error:', err); notify('error', 'فشل حفظ الأسئلة إلى Firestore.'); })
     }
   }
 

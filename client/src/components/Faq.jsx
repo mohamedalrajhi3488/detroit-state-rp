@@ -48,12 +48,12 @@ export default function Faq({ groups = defaultFaqGroups }) {
         <header className="faq-header">
           <span className="faq-eyebrow">الأسئلة الشائعة</span>
           <h1>هل لديك أسئلة؟</h1>
-          <p>كل المعلومات التي تحتاجها عن السيرفر، العضويات، التحديثات، والنظام موجودة هنا.</p>
+          <p>كل المعلومات التي تحتاجها عن السيرفر هنا.</p>
         </header>
 
         {faqGroups.length === 0 ? (
           <div className="faq-empty-state">
-            <p>لا توجد أسئلة حالياً. يمكنك إضافة الأسئلة من لوحة الإدارة.</p>
+            <p>لا توجد أسئلة حالياً.</p>
           </div>
         ) : (
           <div className="faq-accordion">

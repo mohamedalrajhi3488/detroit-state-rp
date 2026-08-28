@@ -33,6 +33,7 @@ export const creatorsCollection = collection(db, 'creators')
 export const newsCollection = collection(db, 'news')
 export const staffCollection = collection(db, 'staff')
 export const shopProductsCollection = collection(db, 'shopProducts')
+export const faqGroupsCollection = collection(db, 'faqGroups')
 
 export const saveActivityToFirestore = async (entry) => {
   if (!entry?.user) return null
@@ -211,6 +212,18 @@ export const saveStaffToFirestore = async (staff) => {
   }
 }
 
+export const saveFaqGroupsToFirestore = async (faqGroups) => {
+  if (!Array.isArray(faqGroups)) return null
+
+  try {
+    await setDoc(doc(db, 'faqGroups', 'list'), { items: faqGroups })
+    return faqGroups
+  } catch (error) {
+    console.warn('Firestore FAQ groups save failed:', error)
+    return null
+  }
+}
+
 export const getActivityFromFirestore = async (count = 20) => {
   try {
     const snapshot = await getDocs(query(activityCollection, orderBy('time', 'desc'), limit(count)))
@@ -293,6 +306,16 @@ export const getStaffFromFirestore = async () => {
     return snapshot.exists() ? (snapshot.data()?.items || []) : []
   } catch (error) {
     console.warn('Firestore staff fetch failed:', error)
+    return []
+  }
+}
+
+export const getFaqGroupsFromFirestore = async () => {
+  try {
+    const snapshot = await getDoc(doc(db, 'faqGroups', 'list'))
+    return snapshot.exists() ? (snapshot.data()?.items || []) : []
+  } catch (error) {
+    console.warn('Firestore FAQ groups fetch failed:', error)
     return []
   }
 }
