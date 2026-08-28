@@ -2438,9 +2438,9 @@ img { max-width: 100%; display: block; }
 }
 
 .staff-page-shell {
-  width: min(1060px, calc(100% - 42px));
+  width: min(1200px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 28px 0 80px;
+  padding: 0 0 60px;
   color: #edf3ff;
 }
 
@@ -2708,8 +2708,8 @@ img { max-width: 100%; display: block; }
 .news-hero-shell {
   position: relative;
   width: 100vw;
-  min-height: 560px;
   margin-inline: calc(50% - 50vw);
+  min-height: 560px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2718,6 +2718,7 @@ img { max-width: 100%; display: block; }
   border: 0;
   border-radius: 0;
   box-shadow: none;
+  margin-bottom: 28px;
 }
 
 .news-hero-background {
@@ -2725,7 +2726,7 @@ img { max-width: 100%; display: block; }
   inset: 0;
   background-size: cover;
   background-position: center;
-  filter: blur(8px) brightness(0.45);
+  filter: blur(7px) brightness(0.45);
   transform: scale(1.08);
 }
 
@@ -2736,9 +2737,8 @@ img { max-width: 100%; display: block; }
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 16px;
-  padding: 28px 20px 20px;
-  transform: translateY(0);
+  gap: 18px;
+  padding: 40px 20px 20px;
 }
 
 .news-official-badge {
@@ -2768,16 +2768,17 @@ img { max-width: 100%; display: block; }
   line-height: 0.82;
   font-size: clamp(4rem, 9vw, 13rem) !important;
   letter-spacing: -0.04em;
+  color: #f5f3ff;
   filter: drop-shadow(0 18px 25px rgba(142, 94, 255, 0.35));
 }
 
 .news-subtitle {
   max-width: 700px;
   margin: 0;
-  color: rgba(255,255,255,0.74);
+  color: rgba(255,255,255,0.78);
   font-size: 1.06rem;
   line-height: 1.9;
-  transform: translateY(-4px);
+  text-shadow: 0 4px 18px rgba(10, 8, 14, 0.6);
 }
 
 /* Highlighted feature for shop products (red) */
@@ -3455,9 +3456,9 @@ img { max-width: 100%; display: block; }
 .system-badge .badge-icon svg path, .system-badge .badge-icon svg circle { stroke: currentColor }
 
 .faq-page-shell {
-  width: min(1180px, calc(100% - 32px));
-  margin: 42px auto 24px;
-  padding: 18px 0 32px;
+  width: min(1200px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 0 0 60px;
 }
 
 .faq-page-inner {
@@ -3470,7 +3471,46 @@ img { max-width: 100%; display: block; }
   justify-items: center;
   text-align: center;
   gap: 12px;
-  padding-top: 20px;
+  padding-top: 0;
+}
+
+.faq-hero-shell {
+  position: relative;
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  min-height: 560px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.08);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin-bottom: 28px;
+}
+
+.faq-hero-background {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-image: linear-gradient(90deg, rgba(3, 7, 13, 0.78), rgba(30, 10, 60, 0.48)), url('/img/banner.png');
+  filter: blur(7px) brightness(0.45);
+  transform: scale(1.08);
+}
+
+.faq-hero-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+  padding: 40px 20px 20px;
+  transform: none;
 }
 
 .faq-eyebrow {
@@ -3490,18 +3530,20 @@ img { max-width: 100%; display: block; }
 
 .faq-header h1 {
   margin: 0;
-  font-size: clamp(2.4rem, 5vw, 4.2rem);
-  line-height: 1.1;
-  font-weight: 900;
-  color: #f5f3ff;
+  font-size: clamp(2.4rem, 5vw, 5rem);
+  line-height: 1.05;
+  font-weight: 800;
+  color: #f5f7ff;
+  letter-spacing: 0;
+  text-shadow: 0 0 30px rgba(157, 77, 255, 0.6), 0 8px 32px rgba(157, 77, 255, 0.3);
 }
 
 .faq-header p {
   margin: 0;
   max-width: 760px;
-  color: rgba(234, 231, 255, 0.7);
-  font-size: 1.05rem;
-  line-height: 2;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 1.04rem;
+  line-height: 1.8;
 }
 
 .faq-accordion {

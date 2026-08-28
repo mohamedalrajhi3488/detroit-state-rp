@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo, useState } from 'react'
 
 export const defaultFaqGroups = []
 
@@ -42,13 +42,24 @@ const renderAnswerContent = (answer = '') => {
 export default function Faq({ groups = defaultFaqGroups }) {
   const faqGroups = Array.isArray(groups) && groups.length ? groups : defaultFaqGroups
 
+  const [openItemKey, setOpenItemKey] = useState(null)
+
   return (
     <section id="faq" className="faq-page-shell">
       <div className="faq-page-inner">
-        <header className="faq-header">
-          <span className="faq-eyebrow">الأسئلة الشائعة</span>
-          <h1>هل لديك أسئلة؟</h1>
-          <p>كل المعلومات التي تحتاجها عن السيرفر هنا.</p>
+        <header className="faq-header faq-hero-shell">
+          <div
+            className="faq-hero-background"
+            style={{
+              backgroundImage: "linear-gradient(90deg, rgba(10, 6, 18, 0.8), rgba(10, 6, 18, 0.36)), url('/img/banner.png')"
+            }}
+          />
+
+          <div className="faq-hero-content">
+            <span className="faq-eyebrow">الأسئلة الشائعة</span>
+            <h1>هل لديك أسئلة؟</h1>
+            <p>كل المعلومات التي تحتاجها عن السيرفر هنا.</p>
+          </div>
         </header>
 
         {faqGroups.length === 0 ? (
@@ -61,14 +72,29 @@ export default function Faq({ groups = defaultFaqGroups }) {
               <div className="faq-group" key={group.id || group.title}>
                 <h2>{group.title}</h2>
 
-                {(group.items || []).map((item) => (
-                  <details key={`${group.id || group.title}-${item.id || item.question}`} className="faq-item">
-                    <summary>{item.question}</summary>
-                    <div className="faq-answer">
-                      {renderAnswerContent(item.answer)}
-                    </div>
-                  </details>
-                ))}
+                {(group.items || []).map((item) => {
+                  const itemKey = `${group.id || group.title}-${item.id || item.question}`
+
+                  return (
+                    <details
+                      key={itemKey}
+                      className="faq-item"
+                      open={openItemKey === itemKey}
+                    >
+                      <summary
+                        onClick={(event) => {
+                          event.preventDefault()
+                          setOpenItemKey((currentKey) => (currentKey === itemKey ? null : itemKey))
+                        }}
+                      >
+                        {item.question}
+                      </summary>
+                      <div className="faq-answer">
+                        {renderAnswerContent(item.answer)}
+                      </div>
+                    </details>
+                  )
+                })}
               </div>
             ))}
           </div>
