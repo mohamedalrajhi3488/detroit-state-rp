@@ -79,10 +79,21 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     setIsVerifyingMembership(true)
     setMembershipError('')
 
+    const existingStatus = String(loggedUser?.status || '').trim().toLowerCase()
+    const validExistingStatus = !['', 'not_in_guild', 'not_member', 'pending', 'memberless', 'offline'].includes(existingStatus)
+
     try {
       const response = await fetch('/api/discord/member-status', { credentials: 'same-origin' })
       if (!response.ok) {
-        setMembershipError('تعذر التحقق من العضوية في الوقت الحالي. حاول مرة أخرى.')
+        if (validExistingStatus) {
+          setGuildStatus(existingStatus)
+          setTimeout(() => {
+            window.location.reload()
+          }, 600)
+          return
+        }
+
+        setMembershipError('تعذر التحقق من العضوية في الوقت الحالي. حاول مرة أخرى بعد قليل.')
         return
       }
 
@@ -90,15 +101,30 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
       const nextStatus = String(data?.status || 'not_in_guild').trim().toLowerCase()
       setGuildStatus(nextStatus)
 
-      if (data?.member === true && nextStatus !== 'not_in_guild') {
+      if (data?.member === true && !['', 'not_in_guild', 'not_member', 'pending', 'memberless', 'offline'].includes(nextStatus)) {
         setTimeout(() => {
           window.location.reload()
-        }, 700)
+        }, 600)
+        return
+      }
+
+      if (validExistingStatus && !['not_in_guild', 'not_member', 'pending', 'memberless', 'offline'].includes(nextStatus)) {
+        setTimeout(() => {
+          window.location.reload()
+        }, 600)
         return
       }
 
       setMembershipError('أنت غير موجود في سيرفر Detroit State. انضم إلى السيرفر ثم حاول مرة أخرى.')
     } catch {
+      if (validExistingStatus) {
+        setGuildStatus(existingStatus)
+        setTimeout(() => {
+          window.location.reload()
+        }, 600)
+        return
+      }
+
       setMembershipError('تعذر التحقق من عضويتك. حاول مرة أخرى بعد قليل.')
     } finally {
       setIsVerifyingMembership(false)
