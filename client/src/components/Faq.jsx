@@ -61,8 +61,8 @@ export default function Faq({ groups = defaultFaqGroups }) {
               <div className="faq-group" key={group.id || group.title}>
                 <h2>{group.title}</h2>
 
-                {(group.items || []).map((item, index) => (
-                  <details key={`${group.id || group.title}-${item.id || item.question}`} className="faq-item" open={index === 0}>
+                {(group.items || []).map((item) => (
+                  <details key={`${group.id || group.title}-${item.id || item.question}`} className="faq-item">
                     <summary>{item.question}</summary>
                     <div className="faq-answer">
                       {renderAnswerContent(item.answer)}
