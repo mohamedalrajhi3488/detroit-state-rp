@@ -325,7 +325,7 @@ app.get('/auth/discord/callback', async (req, res) => {
           headers: { Authorization: `Bot ${BOT_TOKEN}` }
         });
         const member = memberResp.data || {};
-        guildStatus = member.status || member.presence?.status || member.user?.presence?.status || guildStatus;
+        guildStatus = member.status || member.presence?.status || member.user?.presence?.status || (isMember ? 'member' : 'offline');
       } catch (e) {
         console.warn('Failed to fetch guild member presence:', e.response ? e.response.data : e.message);
         if (e.response && (e.response.status === 404 || e.response.status === 403)) {
@@ -356,6 +356,9 @@ app.get('/auth/discord/callback', async (req, res) => {
     const signedUser = { ...user, status: guildStatus };
     if (REQUIRE_GUILD_MEMBERSHIP && !isMember && TARGET_GUILD_ID) {
       signedUser.status = 'not_in_guild';
+    }
+    if (REQUIRE_GUILD_MEMBERSHIP && isMember && TARGET_GUILD_ID) {
+      signedUser.status = guildStatus === 'not_in_guild' ? 'member' : guildStatus || 'member';
     }
 
     const token = createSignedUserToken(signedUser);

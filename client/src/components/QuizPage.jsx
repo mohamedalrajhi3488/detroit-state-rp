@@ -22,7 +22,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
   const [submitting, setSubmitting] = useState(false)
 
   const isLoggedIn = Boolean(loggedUser?.id)
-  const isGuildVerified = isLoggedIn && loggedUser?.status && loggedUser.status !== 'offline' && loggedUser.status !== 'not_in_guild'
+  const isGuildVerified = isLoggedIn && loggedUser?.status !== 'not_in_guild' && loggedUser?.status !== 'not_member' && loggedUser?.status !== 'pending'
 
   const safeQuestions = Array.isArray(questions) ? questions : []
   const totalQuestions = safeQuestions.length
