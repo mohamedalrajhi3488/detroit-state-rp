@@ -3,7 +3,7 @@ export const defaultPages = [
   { id: 'news', name: 'الأخبار', status: 'visible', order: 2, type: 'news', description: 'آخر التحديثات والفعاليات داخل المجتمع.' },
   { id: 'shop', name: 'المتجر', status: 'visible', order: 3, type: 'shop', description: 'خطط العضوية والمزايا الخاصة.' },
   { id: 'staff', name: 'الطاقم الإداري', status: 'visible', order: 4, type: 'staff', description: 'فريق الإدارة والموظفين المسؤولين عن دعم المجتمع.' },
-  { id: 'tutorials', name: 'الشروحات', status: 'visible', order: 5, type: 'tutorials', description: 'دروس وإرشادات للمستخدمين الجدد.' },
+  { id: 'faq', name: 'الأسئلة', status: 'visible', order: 5, type: 'faq', description: 'الأسئلة الشائعة والإجابات السريعة لكل ما يهمك.' },
   { id: 'jobs', name: 'الوظائف', status: 'visible', order: 6, type: 'jobs', description: 'فرص العمل والوظائف داخل المدينة.' },
   { id: 'quiz', name: 'الاختبارات', status: 'visible', order: 7, type: 'quiz', description: 'اختبارات ومهام داخل المجتمع.' },
   { id: 'rules', name: 'القوانين', status: 'visible', order: 8, type: 'rules', description: 'قوانين النظام وقواعد اللعبة.' },
@@ -52,7 +52,7 @@ export const resolvePageType = (page, index = 0) => {
   if (id === 'jobs' || name.includes('وظيفة') || name.includes('وظائف')) return 'jobs'
   if (id === 'rules' || name.includes('قانون') || name.includes('قوانين')) return 'rules'
   if (id === 'activities' || name.includes('نشاط') || name.includes('أنشطة')) return 'activities'
-  if (id === 'tutorials' || name.includes('شرح') || name.includes('شروحات')) return 'tutorials'
+  if (id === 'faq' || id === 'tutorials' || name.includes('faq') || name.includes('أسئلة') || name.includes('سؤال') || name.includes('شرح') || name.includes('شروحات')) return 'faq'
   if (id === 'quiz' || name.includes('اختبار')) return 'quiz'
   if (id === 'tournaments' || name.includes('بطولة')) return 'tournaments'
   return page?.type || `custom-page-${index + 1}`

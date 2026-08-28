@@ -232,7 +232,7 @@ const resolvePageType = (page, index) => {
   if (id === 'jobs' || name.includes('وظيفة') || name.includes('وظائف')) return 'jobs'
   if (id === 'rules' || name.includes('قانون') || name.includes('قوانين')) return 'rules'
   if (id === 'activities' || name.includes('نشاط') || name.includes('أنشطة')) return 'activities'
-  if (id === 'tutorials' || name.includes('شرح') || name.includes('شروحات')) return 'tutorials'
+  if (id === 'faq' || id === 'tutorials' || name.includes('faq') || name.includes('أسئلة') || name.includes('سؤال') || name.includes('شرح') || name.includes('شروحات')) return 'faq'
   if (id === 'quiz' || name.includes('اختبار')) return 'quiz'
   if (id === 'tournaments' || name.includes('بطولة')) return 'tournaments'
   return page?.type || `custom-page-${index + 1}`
@@ -1195,19 +1195,8 @@ export default function App() {
       )
     }
     if (page.type === 'news') return renderNewsPage()
-    if (page.type === 'tutorials') return (
+    if (page.type === 'faq') return (
       <>
-        <section className="dynamic-page-shell">
-          <div className="dynamic-page-card">
-            <span className="dynamic-page-badge">{page.name}</span>
-            <h2>{page.name}</h2>
-            <p>{page.description}</p>
-            <div className="dynamic-page-grid">
-              <article><strong>اختيار الهوية</strong><p>ابدأ بطريقة صحيحة من خلال القراءة والفهم قبل دخول المدينة.</p></article>
-              <article><strong>استراتيجية السوفت</strong><p>تعرف على أفضل الممارسات والأنظمة داخل المجتمع.</p></article>
-            </div>
-          </div>
-        </section>
         <Faq />
       </>
     )

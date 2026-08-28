@@ -1,39 +1,102 @@
 import React from 'react'
 
-const faqs = [
+const faqGroups = [
   {
-    question: 'هل أحتاج إلى Discord للدخول؟',
-    answer: 'نعم، يجب أن تكون عضوًا في خادم Discord الخاص بنا حتى تتمكن من الدخول إلى السيرفر.'
+    title: 'الـه',
+    items: [
+      {
+        question: 'هل أحتاج إلى Discord للدخول؟',
+        answer: 'نعم، يجب أن تكون عضوًا في خادم Discord الخاص بنا حتى تتمكن من الدخول إلى السيرفر واستخدام جميع الخدمات.'
+      },
+      {
+        question: 'هل يوجد دعم فني؟',
+        answer: 'بكل تأكيد. فريق الدعم لدينا متواجد لمساعدتك في كل الاستفسارات، الطلبات، والمشاكل اليومية.'
+      },
+      {
+        question: 'هل يمكنني التقديم كطاقم؟',
+        answer: 'نعم، يتم فتح التقديمات من وقت لآخر عبر إعلاناتنا الرسمية في السيرفر، ويمكنك متابعة آخر التحديثات من الأخبار.'
+      }
+    ]
   },
   {
-    question: 'هل يوجد دعم فني؟',
-    answer: 'نعم، يوجد فريق دعم متاح لمساعدتك في الاستفسارات والطلبات اليومية.'
+    title: 'إعداد الحساب',
+    items: [
+      {
+        question: 'كيف أبدأ في السيرفر؟',
+        answer: 'ابدأ بالانضمام إلى خادم Discord الرسمي، ثم تأكد من قراءة القوانين والأنظمة قبل الدخول إلى اللعبة.'
+      },
+      {
+        question: 'هل أستطيع تغيير اسم شخصيتي؟',
+        answer: 'التغيير يعتمد على النظام المعتمد داخل السيرفر. في بعض الحالات يكون متاحًا من خلال الطاقم أو من خلال إعدادات الحساب.'
+      },
+      {
+        question: 'ما هي خطوات التسجيل؟',
+        answer: 'يُطلب منك عادةً الالتزام بالقوانين، الحضور على Discord، ثم متابعة التعليمات الرسمية داخل السيرفر.'
+      }
+    ]
   },
   {
-    question: 'هل يمكن شراء العضوية؟',
-    answer: 'نعم، توجد باقات عضوية مختلفة مع مزايا إضافية حسب نوع الخطة المختارة.'
+    title: 'العضويات',
+    items: [
+      {
+        question: 'هل توجد عضويات مدفوعة؟',
+        answer: 'نعم، يوجد لدينا باقات عضوية مختلفة تقدم مزايا إضافية، حسب نوع الخطة المختارة.'
+      },
+      {
+        question: 'هل توجد مميزات خاصة للأعضاء؟',
+        answer: 'بعض المزايا تكون خاصة بالأعضاء المميزين مثل الوصول إلى محتوى أو أدوات إضافية داخل المجتمع.'
+      },
+      {
+        question: 'كيف يمكنني شراء العضوية؟',
+        answer: 'يمكنك شراء العضوية عبر متجرنا الرسمي داخل الموقع أو الرابط الذي يتم تقديمه من الطاقم.'
+      }
+    ]
   },
   {
-    question: 'هل توجد فعاليات منتظمة؟',
-    answer: 'نعم، يقوم الطاقم بتنظيم فعاليات دورية، أسابيع خاصة، ومفاجآت داخل المجتمع.'
+    title: 'المجتمع والفعاليات',
+    items: [
+      {
+        question: 'هل توجد فعاليات منتظمة؟',
+        answer: 'نعم، نظّم طاقمنا فعاليات دورية، بطولات، وأحداث خاصة داخل المجتمع بشكل دوري.'
+      },
+      {
+        question: 'هل يمكن المشاركة في الفعاليات الجديدة؟',
+        answer: 'نعم، يتم الإعلان عن جميع الفعاليات عبر Discord والأخبار، وطالما أنت عضو شرعي داخل السيرفر يمكنك المشاركة.'
+      },
+      {
+        question: 'كيف أعرف آخر الأخبار والتحديثات؟',
+        answer: 'من خلال صفحة الأخبار داخل الموقع، بالإضافة إلى قنوات Discord الرسمية في السيرفر.'
+      }
+    ]
   }
 ]
 
 export default function Faq() {
   return (
-    <section id="faq" className="section-block faq-section">
-      <div className="section-header center-header small-header">
-        <span className="eyebrow">الأسئلة الشائعة</span>
-        <h2>كل ما تحتاج معرفته</h2>
-      </div>
+    <section id="faq" className="faq-page-shell">
+      <div className="faq-page-inner">
+        <header className="faq-header">
+          <span className="faq-eyebrow">الأسئلة الشائعة</span>
+          <h1>هل لديك أسئلة؟</h1>
+          <p>كل المعلومات التي تحتاجها عن السيرفر، العضويات، التحديثات، والنظام موجودة هنا.</p>
+        </header>
 
-      <div className="faq-list">
-        {faqs.map((item, index) => (
-          <details key={item.question} open={index === 0}>
-            <summary>{item.question}</summary>
-            <p>{item.answer}</p>
-          </details>
-        ))}
+        <div className="faq-accordion">
+          {faqGroups.map((group) => (
+            <div className="faq-group" key={group.title}>
+              <h2>{group.title}</h2>
+
+              {group.items.map((item, index) => (
+                <details key={`${group.title}-${item.question}`} className="faq-item" open={index === 0 && group.title === 'الـه'}>
+                  <summary>{item.question}</summary>
+                  <div className="faq-answer">
+                    <p>{item.answer}</p>
+                  </div>
+                </details>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   )

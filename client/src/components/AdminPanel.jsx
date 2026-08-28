@@ -129,7 +129,7 @@ const resolvePageType = (page, fallbackIndex = 0) => {
   if (id === 'jobs' || name.includes('وظيفة') || name.includes('وظائف')) return 'jobs'
   if (id === 'rules' || name.includes('قانون') || name.includes('قوانين')) return 'rules'
   if (id === 'activities' || name.includes('نشاط') || name.includes('أنشطة')) return 'activities'
-  if (id === 'tutorials' || name.includes('شرح') || name.includes('شروحات')) return 'tutorials'
+  if (id === 'faq' || id === 'tutorials' || name.includes('faq') || name.includes('أسئلة') || name.includes('سؤال') || name.includes('شرح') || name.includes('شروحات')) return 'faq'
   if (id === 'quiz' || name.includes('اختبار')) return 'quiz'
   if (id === 'tournaments' || name.includes('بطولة')) return 'tournaments'
   return page?.type || `custom-page-${fallbackIndex + 1}`
