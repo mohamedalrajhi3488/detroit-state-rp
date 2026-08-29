@@ -64,6 +64,9 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
 
   const safeQuestions = Array.isArray(questions) ? questions : []
   const totalQuestions = safeQuestions.length
+  const passRatio = 0.7
+  const requiredCorrectAnswers = Math.ceil(totalQuestions * passRatio)
+  const requiredPercentage = Math.ceil(passRatio * 100)
 
   const completion = useMemo(() => {
     const answered = Object.keys(answers).filter((key) => answers[key] !== undefined && answers[key] !== null && answers[key] !== '').length
@@ -134,7 +137,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     setSubmitting(true)
 
     const score = buildScoreSummary(safeQuestions, answers)
-    const passed = score >= Math.ceil(safeQuestions.length * 0.7)
+    const passed = (score / Math.max(totalQuestions, 1)) >= passRatio
 
     const result = {
       discordId: loggedUser.id,
@@ -251,10 +254,12 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
           </header>
 
           <div className="quiz-intro-card" style={{ marginTop: '1.5rem' }}>
-            <div className="quiz-gate-icon">🧠</div>
+            <div className="quiz-gate-icon">
+              <img src="/img/DS.webp" alt="Detroit State" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+            </div>
             <div className="quiz-intro-meta">
               <span>{safeQuestions.length} أسئلة</span>
-              <span>الحد الأدنى للنجاح: {Math.ceil(safeQuestions.length * 0.7)}/ {safeQuestions.length}</span>
+              <span>الحد الأدنى للنجاح: {requiredPercentage}%</span>
             </div>
             <button type="button" className="quiz-primary-btn" onClick={() => setStarted(true)}>ابدأ الاختبار</button>
           </div>
