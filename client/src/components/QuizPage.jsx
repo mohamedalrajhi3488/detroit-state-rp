@@ -88,9 +88,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
       if (!response.ok) {
         if (validExistingStatus) {
           setGuildStatus(existingStatus)
-          setTimeout(() => {
-            window.location.reload()
-          }, 600)
+          setMembershipError('')
           return
         }
 
@@ -103,16 +101,12 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
       setGuildStatus(nextStatus)
 
       if (data?.member === true && !['', 'not_in_guild', 'not_member', 'pending', 'memberless'].includes(nextStatus)) {
-        setTimeout(() => {
-          window.location.reload()
-        }, 600)
+        setMembershipError('')
         return
       }
 
       if (validExistingStatus && !['not_in_guild', 'not_member', 'pending', 'memberless'].includes(nextStatus)) {
-        setTimeout(() => {
-          window.location.reload()
-        }, 600)
+        setMembershipError('')
         return
       }
 
@@ -120,9 +114,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     } catch {
       if (validExistingStatus) {
         setGuildStatus(existingStatus)
-        setTimeout(() => {
-          window.location.reload()
-        }, 600)
+        setMembershipError('')
         return
       }
 
