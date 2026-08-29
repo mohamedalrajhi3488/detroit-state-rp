@@ -58,7 +58,8 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
 
   const isLoggedIn = Boolean(loggedUser?.id)
   const normalizedGuildStatus = String(guildStatus || '').trim().toLowerCase()
-  const isGuildVerified = isLoggedIn && !['', 'offline', 'not_in_guild', 'not_member', 'pending', 'memberless'].includes(normalizedGuildStatus)
+  const hasGuildMembership = !['', 'not_in_guild', 'not_member', 'pending', 'memberless'].includes(normalizedGuildStatus)
+  const isGuildVerified = isLoggedIn && hasGuildMembership
 
   const safeQuestions = Array.isArray(questions) ? questions : []
   const totalQuestions = safeQuestions.length
@@ -80,7 +81,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     setMembershipError('')
 
     const existingStatus = String(loggedUser?.status || '').trim().toLowerCase()
-    const validExistingStatus = !['', 'not_in_guild', 'not_member', 'pending', 'memberless', 'offline'].includes(existingStatus)
+    const validExistingStatus = !['', 'not_in_guild', 'not_member', 'pending', 'memberless'].includes(existingStatus)
 
     try {
       const response = await fetch('/api/discord/member-status', { credentials: 'same-origin' })
@@ -101,14 +102,14 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
       const nextStatus = String(data?.status || 'not_in_guild').trim().toLowerCase()
       setGuildStatus(nextStatus)
 
-      if (data?.member === true && !['', 'not_in_guild', 'not_member', 'pending', 'memberless', 'offline'].includes(nextStatus)) {
+      if (data?.member === true && !['', 'not_in_guild', 'not_member', 'pending', 'memberless'].includes(nextStatus)) {
         setTimeout(() => {
           window.location.reload()
         }, 600)
         return
       }
 
-      if (validExistingStatus && !['not_in_guild', 'not_member', 'pending', 'memberless', 'offline'].includes(nextStatus)) {
+      if (validExistingStatus && !['not_in_guild', 'not_member', 'pending', 'memberless'].includes(nextStatus)) {
         setTimeout(() => {
           window.location.reload()
         }, 600)

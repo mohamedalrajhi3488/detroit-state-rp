@@ -230,6 +230,31 @@ app.get('/api/discord/member-status', async (req, res) => {
       : []
     const userIsMember = Boolean(decoded.isMember) || guildIds.includes(String(TARGET_GUILD_ID))
 
+    if (BOT_TOKEN) {
+      try {
+        const memberResp = await axios.get(`https://discord.com/api/guilds/${TARGET_GUILD_ID}/members/${decoded.id}`, {
+          headers: { Authorization: `Bot ${BOT_TOKEN}` }
+        })
+        const member = memberResp.data || {}
+        const status = member.status || member.presence?.status || member.user?.presence?.status || 'member'
+        return res.json({
+          member: true,
+          status: String(status || 'member').trim().toLowerCase() || 'member'
+        })
+      } catch (error) {
+        if (error.response && (error.response.status === 404 || error.response.status === 403 || error.response.status === 401)) {
+          if (userIsMember) {
+            return res.json({
+              member: true,
+              status: String(decoded.status || 'member').trim().toLowerCase() || 'member'
+            })
+          }
+          return res.json({ member: false, status: 'not_in_guild' })
+        }
+        return res.status(500).json({ error: 'guild_status_check_failed', details: error.response ? error.response.data : error.message })
+      }
+    }
+
     if (userIsMember) {
       return res.json({
         member: true,
@@ -237,23 +262,7 @@ app.get('/api/discord/member-status', async (req, res) => {
       })
     }
 
-    if (!BOT_TOKEN) {
-      return res.json({ member: false, status: 'not_in_guild' })
-    }
-
-    try {
-      const memberResp = await axios.get(`https://discord.com/api/guilds/${TARGET_GUILD_ID}/members/${decoded.id}`, {
-        headers: { Authorization: `Bot ${BOT_TOKEN}` }
-      })
-      const member = memberResp.data || {}
-      const status = member.status || member.presence?.status || member.user?.presence?.status || 'member'
-      return res.json({ member: true, status })
-    } catch (error) {
-      if (error.response && (error.response.status === 404 || error.response.status === 403 || error.response.status === 401)) {
-        return res.json({ member: false, status: 'not_in_guild' })
-      }
-      return res.status(500).json({ error: 'guild_status_check_failed', details: error.response ? error.response.data : error.message })
-    }
+    return res.json({ member: false, status: 'not_in_guild' })
   } catch {
     return res.status(401).json({ error: 'invalid_session' })
   }
