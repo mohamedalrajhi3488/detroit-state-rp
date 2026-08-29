@@ -651,12 +651,12 @@ img { max-width: 100%; display: block; }
 }
 
 .account-page-shell {
-  min-height: calc(100vh - 160px);
+  min-height: calc(100vh - 210px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-top: 150px;
-  padding-bottom: 80px;
+  padding-top: 180px;
+  padding-bottom: 100px;
 }
 
 .account-profile-card {
