@@ -217,17 +217,18 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
 
   if (submitted && localResult) {
     const successText = localResult.passed ? 'تم اجتياز الاختبار بنجاح' : 'تم إنهاء الاختبار'
+    const percentage = localResult.total ? Math.round((localResult.score / localResult.total) * 100) : 0
 
     return (
       <section className="quiz-page-shell">
         <div className="quiz-result-card">
           <div className="quiz-result-icon">{localResult.passed ? '✅' : '🎯'}</div>
           <h1>{successText}</h1>
-          <p>درجتك: {localResult.score} من {localResult.total}</p>
+          <p>نسبتك: {percentage}%</p>
           {localResult.passed ? (
-            <p className="quiz-result-note">مبروك، لقد نجحت في الاختبار وتم تسجيل نتيجتك في لوحة الإدارة.</p>
+            <p className="quiz-result-note">تم إعطائك رتبة اجتاز الاختبار الإلكتروني في Discord.</p>
           ) : (
-            <p className="quiz-result-note">يمكنك إعادة المحاولة لاحقًا لتجربة جديدة وتحسين النتيجة.</p>
+            <p className="quiz-result-note">يمكنك إعادة المحاولة الأسبوع المقبل وبتوفيق لك.</p>
           )}
         </div>
       </section>

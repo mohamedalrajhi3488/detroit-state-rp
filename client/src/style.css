@@ -3664,7 +3664,7 @@ img { max-width: 100%; display: block; }
 .quiz-gate-shell {
   width: min(1360px, calc(100% - 48px));
   margin: 0 auto;
-  padding: 42px 0 88px;
+  padding: 72px 0 88px;
 }
 
 .quiz-gate-card,
@@ -3691,16 +3691,34 @@ img { max-width: 100%; display: block; }
 }
 
 .quiz-gate-icon {
+  position: relative;
   display: grid;
   place-items: center;
   width: 120px;
   height: 120px;
   border-radius: 30px;
-  overflow: hidden;
+  overflow: visible;
   padding: 0;
   background: transparent;
   border: none;
   box-shadow: none;
+}
+
+.quiz-gate-icon::after {
+  content: '📍';
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #9d4dff, #7c3aed);
+  border: 2px solid rgba(7, 9, 18, 0.9);
+  box-shadow: 0 8px 20px rgba(157, 77, 255, 0.4);
+  font-size: 1.1rem;
+  line-height: 1;
 }
 
 .quiz-gate-card h1,
