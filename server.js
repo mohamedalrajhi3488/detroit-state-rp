@@ -103,6 +103,41 @@ const createSignedUserToken = (user) => {
   }, JWT_SECRET, { expiresIn: '7d' })
 }
 
+const getGuildMembership = async (userId, fallbackMember = false, fallbackStatus = 'offline') => {
+  if (!REQUIRE_GUILD_MEMBERSHIP || !TARGET_GUILD_ID) {
+    return {
+      member: Boolean(fallbackMember),
+      status: String(fallbackStatus || 'member').trim().toLowerCase() || 'member'
+    }
+  }
+
+  if (!BOT_TOKEN) {
+    return {
+      member: Boolean(fallbackMember),
+      status: Boolean(fallbackMember)
+        ? (String(fallbackStatus || 'member').trim().toLowerCase() || 'member')
+        : 'not_in_guild'
+    }
+  }
+
+  try {
+    const memberResp = await axios.get(`https://discord.com/api/guilds/${TARGET_GUILD_ID}/members/${userId}`, {
+      headers: { Authorization: `Bot ${BOT_TOKEN}` }
+    })
+    const member = memberResp.data || {}
+    const status = member.status || member.presence?.status || member.user?.presence?.status || 'member'
+    return {
+      member: true,
+      status: String(status || 'member').trim().toLowerCase() || 'member'
+    }
+  } catch (error) {
+    if (error.response && [404, 403, 401].includes(error.response.status)) {
+      return { member: false, status: 'not_in_guild' }
+    }
+    throw error
+  }
+}
+
 const getRegisteredUsers = () => Array.from(REGISTERED_USERS.values()).slice(0, 100)
 
 if (!CLIENT_ID || !CLIENT_SECRET) {
@@ -228,41 +263,23 @@ app.get('/api/discord/member-status', async (req, res) => {
     const guildIds = Array.isArray(decoded.guilds)
       ? decoded.guilds.map((guildId) => String(guildId))
       : []
-    const userIsMember = Boolean(decoded.isMember) || guildIds.includes(String(TARGET_GUILD_ID))
+    const fallbackMember = Boolean(decoded.isMember) || guildIds.includes(String(TARGET_GUILD_ID))
 
-    if (BOT_TOKEN) {
-      try {
-        const memberResp = await axios.get(`https://discord.com/api/guilds/${TARGET_GUILD_ID}/members/${decoded.id}`, {
-          headers: { Authorization: `Bot ${BOT_TOKEN}` }
-        })
-        const member = memberResp.data || {}
-        const status = member.status || member.presence?.status || member.user?.presence?.status || 'member'
-        return res.json({
-          member: true,
-          status: String(status || 'member').trim().toLowerCase() || 'member'
-        })
-      } catch (error) {
-        if (error.response && (error.response.status === 404 || error.response.status === 403 || error.response.status === 401)) {
-          if (userIsMember) {
-            return res.json({
-              member: true,
-              status: String(decoded.status || 'member').trim().toLowerCase() || 'member'
-            })
-          }
-          return res.json({ member: false, status: 'not_in_guild' })
-        }
-        return res.status(500).json({ error: 'guild_status_check_failed', details: error.response ? error.response.data : error.message })
-      }
-    }
-
-    if (userIsMember) {
-      return res.json({
-        member: true,
-        status: String(decoded.status || 'member').trim().toLowerCase() || 'member'
+    try {
+      const liveStatus = await getGuildMembership(decoded.id, fallbackMember, decoded.status)
+      const tokenPayload = { ...decoded, status: liveStatus.status, isMember: liveStatus.member }
+      const refreshedToken = createSignedUserToken(tokenPayload)
+      res.cookie('sid', refreshedToken, {
+        httpOnly: true,
+        path: '/',
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production' || !req.headers.host.includes('localhost'),
+        maxAge: 7 * 24 * 60 * 60 * 1000
       })
+      return res.json({ member: liveStatus.member, status: liveStatus.status })
+    } catch (error) {
+      return res.status(500).json({ error: 'guild_status_check_failed', details: error.response ? error.response.data : error.message })
     }
-
-    return res.json({ member: false, status: 'not_in_guild' })
   } catch {
     return res.status(401).json({ error: 'invalid_session' })
   }
@@ -445,19 +462,49 @@ app.get('/auth/discord/callback', async (req, res) => {
   }
 });
 
-app.get('/me', (req, res) => {
+app.get('/me', async (req, res) => {
   const token = req.cookies.sid;
   if (!token) return res.status(401).json({ error: 'not_logged_in' });
 
   try {
     const user = jwt.verify(token, JWT_SECRET);
+    const fallbackMember = Boolean(user.isMember)
+
+    if (REQUIRE_GUILD_MEMBERSHIP && TARGET_GUILD_ID && BOT_TOKEN && user.id) {
+      try {
+        const liveStatus = await getGuildMembership(user.id, fallbackMember, user.status)
+        const refreshedUser = { ...user, status: liveStatus.status, isMember: liveStatus.member }
+        const refreshedToken = createSignedUserToken(refreshedUser)
+        res.cookie('sid', refreshedToken, {
+          httpOnly: true,
+          path: '/',
+          sameSite: 'lax',
+          secure: process.env.NODE_ENV === 'production' || !req.headers.host.includes('localhost'),
+          maxAge: 7 * 24 * 60 * 60 * 1000
+        })
+
+        return res.json({
+          id: refreshedUser.id,
+          username: refreshedUser.username,
+          discriminator: refreshedUser.discriminator,
+          avatar: refreshedUser.avatar,
+          email: refreshedUser.email,
+          status: refreshedUser.status || 'offline',
+          isMember: Boolean(refreshedUser.isMember)
+        })
+      } catch {
+        // ignore live revalidation failure and return the trusted cached token
+      }
+    }
+
     return res.json({
       id: user.id,
       username: user.username,
       discriminator: user.discriminator,
       avatar: user.avatar,
       email: user.email,
-      status: user.status || 'offline'
+      status: user.status || 'offline',
+      isMember: Boolean(user.isMember)
     });
   } catch {
     return res.status(401).json({ error: 'session_invalid' });
