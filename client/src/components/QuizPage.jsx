@@ -222,7 +222,9 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     return (
       <section className="quiz-page-shell">
         <div className="quiz-result-card">
-          <div className="quiz-result-icon">{localResult.passed ? '✅' : '🎯'}</div>
+          <div className="quiz-result-icon">
+            <img src="/img/DS.webp" alt="Detroit State" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+          </div>
           <h1>{successText}</h1>
           <p>نسبتك: {percentage}%</p>
           {localResult.passed ? (
