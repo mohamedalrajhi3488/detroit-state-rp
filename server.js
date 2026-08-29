@@ -97,7 +97,9 @@ const createSignedUserToken = (user) => {
     discriminator: user.discriminator,
     avatar: user.avatar,
     email: user.email,
-    status: user.status || 'offline'
+    status: user.status || 'offline',
+    isMember: Boolean(user.isMember),
+    guilds: Array.isArray(user.guilds) ? user.guilds.map((guild) => String(guild)) : []
   }, JWT_SECRET, { expiresIn: '7d' })
 }
 
@@ -219,8 +221,24 @@ app.get('/api/discord/member-status', async (req, res) => {
       return res.status(401).json({ error: 'invalid_session' })
     }
 
-    if (!REQUIRE_GUILD_MEMBERSHIP || !TARGET_GUILD_ID || !BOT_TOKEN) {
+    if (!REQUIRE_GUILD_MEMBERSHIP || !TARGET_GUILD_ID) {
       return res.status(503).json({ member: false, status: 'not_in_guild', requires_setup: true })
+    }
+
+    const guildIds = Array.isArray(decoded.guilds)
+      ? decoded.guilds.map((guildId) => String(guildId))
+      : []
+    const userIsMember = Boolean(decoded.isMember) || guildIds.includes(String(TARGET_GUILD_ID))
+
+    if (userIsMember) {
+      return res.json({
+        member: true,
+        status: String(decoded.status || 'member').trim().toLowerCase() || 'member'
+      })
+    }
+
+    if (!BOT_TOKEN) {
+      return res.json({ member: false, status: 'not_in_guild' })
     }
 
     try {
@@ -231,7 +249,7 @@ app.get('/api/discord/member-status', async (req, res) => {
       const status = member.status || member.presence?.status || member.user?.presence?.status || 'member'
       return res.json({ member: true, status })
     } catch (error) {
-      if (error.response && (error.response.status === 404 || error.response.status === 403)) {
+      if (error.response && (error.response.status === 404 || error.response.status === 403 || error.response.status === 401)) {
         return res.json({ member: false, status: 'not_in_guild' })
       }
       return res.status(500).json({ error: 'guild_status_check_failed', details: error.response ? error.response.data : error.message })
@@ -389,12 +407,18 @@ app.get('/auth/discord/callback', async (req, res) => {
       return res.redirect(inviteUrl);
     }
 
-    const signedUser = { ...user, status: guildStatus };
+    const signedUser = {
+      ...user,
+      status: guildStatus,
+      isMember,
+      guilds: Array.isArray(user.guilds) ? user.guilds : (Array.isArray(user.guilds) ? user.guilds : [])
+    };
     if (REQUIRE_GUILD_MEMBERSHIP && !isMember && TARGET_GUILD_ID) {
       signedUser.status = 'not_in_guild';
     }
     if (REQUIRE_GUILD_MEMBERSHIP && isMember && TARGET_GUILD_ID) {
       signedUser.status = guildStatus === 'not_in_guild' ? 'member' : guildStatus || 'member';
+      signedUser.isMember = true;
     }
 
     const token = createSignedUserToken(signedUser);
