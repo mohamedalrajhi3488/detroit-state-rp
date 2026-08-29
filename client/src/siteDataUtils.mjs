@@ -5,7 +5,7 @@ export const defaultPages = [
   { id: 'staff', name: 'الطاقم الإداري', status: 'visible', order: 4, type: 'staff', description: 'فريق الإدارة والموظفين المسؤولين عن دعم المجتمع.' },
   { id: 'faq', name: 'الأسئلة', status: 'visible', order: 5, type: 'faq', description: 'الأسئلة الشائعة والإجابات السريعة لكل ما يهمك.' },
   { id: 'jobs', name: 'الوظائف', status: 'visible', order: 6, type: 'jobs', description: 'فرص العمل والوظائف داخل المدينة.' },
-  { id: 'quiz', name: 'الاختبارات', status: 'visible', order: 7, type: 'quiz', description: 'اختبارات ومهام داخل المجتمع.' },
+  { id: 'quiz', name: 'الاختبار الإلكتروني', status: 'visible', order: 7, type: 'quiz', description: 'اختبار من اجل التفعيل  .' },
   { id: 'rules', name: 'القوانين', status: 'visible', order: 8, type: 'rules', description: 'قوانين النظام وقواعد اللعبة.' },
   { id: 'tournaments', name: 'البطولات', status: 'visible', order: 9, type: 'tournaments', description: 'بطولات المسابقات والفعاليات.' },
   { id: 'activities', name: 'الأنشطة', status: 'hidden', order: 10, type: 'activities', description: 'سجل كامل للأنشطة والفعاليات داخل الموقع.' }

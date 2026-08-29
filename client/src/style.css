@@ -3693,14 +3693,14 @@ img { max-width: 100%; display: block; }
 .quiz-gate-icon {
   display: grid;
   place-items: center;
-  width: 110px;
-  height: 110px;
-  border-radius: 28px;
-  background: linear-gradient(135deg, rgba(157, 77, 255, 0.2), rgba(42, 107, 255, 0.14));
-  border: 1px solid rgba(157, 77, 255, 0.35);
-  box-shadow: inset 0 0 20px rgba(157, 77, 255, 0.12), 0 10px 28px rgba(157, 77, 255, 0.18);
+  width: 120px;
+  height: 120px;
+  border-radius: 30px;
   overflow: hidden;
-  padding: 14px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .quiz-gate-card h1,
@@ -3767,14 +3767,15 @@ img { max-width: 100%; display: block; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 38px;
-  padding: 0.55rem 0.9rem;
-  border-radius: 999px;
+  min-height: 42px;
+  padding: 0.7rem 1rem;
+  border-radius: 16px;
   background: rgba(157, 77, 255, 0.08);
   border: 1px solid rgba(157, 77, 255, 0.2);
-  color: #ddc8ff;
-  font-size: 0.85rem;
-  font-weight: 700;
+  color: #e9d7ff;
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
 }
 
 .quiz-progress-header {
@@ -3783,6 +3784,11 @@ img { max-width: 100%; display: block; }
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 18px;
+}
+
+.quiz-intro-card {
+  padding-top: 2.5rem;
+  padding-bottom: 2.5rem;
 }
 
 .quiz-badge {
