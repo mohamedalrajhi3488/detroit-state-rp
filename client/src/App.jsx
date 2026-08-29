@@ -1316,6 +1316,7 @@ export default function App() {
         questions={siteData.quizQuestions || defaultQuizQuestions}
         onSubmitResult={handleQuizSubmit}
         onLogin={handleLogin}
+        quizResults={siteData.quizResults || []}
       />
     )
     if (page.type === 'tournaments') return <section className="dynamic-page-shell"><div className="dynamic-page-card"><span className="dynamic-page-badge">{page.name}</span><h2>{page.name}</h2><p>{page.description}</p><div className="dynamic-page-grid"><article><strong>فعاليات قادمة</strong><p>بطولات يومية وأسبوعية مع جوائز ومزايا خاصة.</p></article><article><strong>التسجيل</strong><p>يمكن للعضو التقديم عبر الديسكورد أو من الموقع مباشرة.</p></article></div></div></section>

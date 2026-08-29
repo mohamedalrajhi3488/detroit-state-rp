@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 
+const QUIZ_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000
+
 const buildScoreSummary = (questions, answers = {}) => {
   let correct = 0
 
@@ -14,7 +16,7 @@ const buildScoreSummary = (questions, answers = {}) => {
   return correct
 }
 
-export default function QuizPage({ loggedUser, questions = [], onSubmitResult, onLogin }) {
+export default function QuizPage({ loggedUser, questions = [], onSubmitResult, onLogin, quizResults = [] }) {
   const [started, setStarted] = useState(false)
   const [answers, setAnswers] = useState({})
   const [submitted, setSubmitted] = useState(false)
@@ -72,6 +74,49 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     const answered = Object.keys(answers).filter((key) => answers[key] !== undefined && answers[key] !== null && answers[key] !== '').length
     return Math.round((answered / Math.max(totalQuestions, 1)) * 100)
   }, [answers, totalQuestions])
+
+  const latestQuizAttempt = useMemo(() => {
+    if (!loggedUser?.id || !Array.isArray(quizResults)) return null
+
+    const userId = String(loggedUser.id)
+    return [...quizResults]
+      .filter((entry) => String(entry?.discordId || '') === userId)
+      .sort((a, b) => new Date(b?.submittedAt || 0).getTime() - new Date(a?.submittedAt || 0).getTime())[0] || null
+  }, [loggedUser?.id, quizResults])
+
+  const nextQuizUnlockAt = useMemo(() => {
+    if (!latestQuizAttempt?.submittedAt) return null
+    return new Date(latestQuizAttempt.submittedAt).getTime() + QUIZ_COOLDOWN_MS
+  }, [latestQuizAttempt?.submittedAt])
+
+  const canTakeQuizAgain = !nextQuizUnlockAt || Date.now() >= nextQuizUnlockAt
+
+  const [timeLeft, setTimeLeft] = useState(() => nextQuizUnlockAt ? Math.max(nextQuizUnlockAt - Date.now(), 0) : 0)
+
+  useEffect(() => {
+    if (!nextQuizUnlockAt) return
+
+    const updateCountdown = () => {
+      setTimeLeft(Math.max(nextQuizUnlockAt - Date.now(), 0))
+    }
+
+    updateCountdown()
+    const timer = window.setInterval(updateCountdown, 1000)
+    return () => window.clearInterval(timer)
+  }, [nextQuizUnlockAt])
+
+  const formatTimeLeft = (ms) => {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000))
+    const days = Math.floor(totalSeconds / 86400)
+    const hours = Math.floor((totalSeconds % 86400) / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+    const seconds = totalSeconds % 60
+
+    if (days > 0) return `${days} يوم ${hours} ساعة`
+    if (hours > 0) return `${hours} ساعة ${minutes} دقيقة`
+    if (minutes > 0) return `${minutes} دقيقة ${seconds} ثانية`
+    return `${seconds} ثانية`
+  }
 
   const handleAnswerChange = (questionId, selectedIndex) => {
     setAnswers((current) => ({
@@ -223,6 +268,28 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
       'يجب تسجيل الدخول أولاً',
       'لا يمكنك بدء اختبار Detroit State إلا بعد تسجيل الدخول     .',
       <button type="button" className="quiz-primary-btn" onClick={onLogin}>تسجيل الدخول</button>
+    )
+  }
+
+  if (!canTakeQuizAgain && nextQuizUnlockAt) {
+    return renderHeroShell(
+      'تم إكمال الاختبار',
+      `لا يمكنك الدخول إلى الاختبار مرة أخرى إلا بعد ${formatTimeLeft(timeLeft)}.`,
+      <div style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: '260px',
+        minHeight: '48px',
+        borderRadius: '14px',
+        background: 'rgba(157, 77, 255, 0.08)',
+        border: '1px solid rgba(157, 77, 255, 0.25)',
+        color: '#e9d7ff',
+        fontWeight: 800,
+        padding: '0.8rem 1rem'
+      }}>
+        {formatTimeLeft(timeLeft)} متبقية
+      </div>
     )
   }
 
