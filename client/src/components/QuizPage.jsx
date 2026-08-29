@@ -80,6 +80,11 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     }))
   }
 
+  const handleStartQuiz = () => {
+    window.scrollTo({ top: 0, behavior: 'auto' })
+    setStarted(true)
+  }
+
   const handleVerifyMembership = async () => {
     setIsVerifyingMembership(true)
     setMembershipError('')
@@ -158,6 +163,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     setLocalResult(response || result)
     setSubmitted(true)
     setSubmitting(false)
+    window.scrollTo({ top: 0, behavior: 'auto' })
   }
 
   const renderHeroShell = (title, message, actionNode) => (
@@ -264,7 +270,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
               <span>{safeQuestions.length} أسئلة</span>
               <span>الحد الأدنى للنجاح: {requiredPercentage}%</span>
             </div>
-            <button type="button" className="quiz-primary-btn" onClick={() => setStarted(true)}>ابدأ الاختبار</button>
+            <button type="button" className="quiz-primary-btn" onClick={handleStartQuiz}>ابدأ الاختبار</button>
           </div>
         </div>
       </section>
