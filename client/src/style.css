@@ -651,7 +651,12 @@ img { max-width: 100%; display: block; }
 }
 
 .account-page-shell {
-  padding-top: 52px;
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 120px;
+  padding-bottom: 60px;
 }
 
 .account-profile-card {
@@ -3917,9 +3922,8 @@ img { max-width: 100%; display: block; }
 }
 
 .quiz-result-card {
-  margin-top: 180px;
-  margin-bottom: 80px;
-  transform: translateY(10px);
+  margin-top: 120px;
+  margin-bottom: 60px;
 }
 
 .quiz-result-note {

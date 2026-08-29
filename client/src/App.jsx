@@ -1381,6 +1381,10 @@ export default function App() {
     const accountJoinDate = getDiscordJoinDate(loggedUser)
     const accountPresence = getDiscordPresenceText(loggedUser?.status)
     const accountPresenceColor = getDiscordPresenceColor(loggedUser?.status)
+    const latestAccountQuizResult = [...(siteData.quizResults || [])]
+      .filter((entry) => String(entry?.discordId || '') === String(loggedUser?.id || ''))
+      .sort((a, b) => new Date(b?.submittedAt || 0).getTime() - new Date(a?.submittedAt || 0).getTime())[0] || null
+    const accountQuizStatus = latestAccountQuizResult ? (latestAccountQuizResult.passed ? 'ناجح' : 'لم ينجح') : 'لم يتم الاختبار'
 
     return (
       <div className="app-shell">
@@ -1431,8 +1435,8 @@ export default function App() {
 
             <div className="account-summary-bar">
               <div>
-                <span>حالة الحساب</span>
-                <strong>{accountPresence}</strong>
+                <span>حالة الاختبار</span>
+                <strong>{accountQuizStatus}</strong>
               </div>
               <div>
                 <span>نوع العضوية</span>
@@ -1458,8 +1462,8 @@ export default function App() {
                 <strong>{accountRole}</strong>
               </div>
               <div className="account-meta-row">
-                <span>الحالة</span>
-                <strong>{accountPresence}</strong>
+                <span>حالة الاختبار</span>
+                <strong>{accountQuizStatus}</strong>
               </div>
             </div>
 
