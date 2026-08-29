@@ -304,7 +304,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
   }
 
   if (submitted && localResult) {
-    const successText = localResult.passed ? 'تم اجتياز الاختبار بنجاح' : 'تم إنهاء الاختبار'
+    const successText = localResult.passed ? 'نجح' : 'لم ينجح'
     const percentage = localResult.total ? Math.round((localResult.score / localResult.total) * 100) : 0
 
     return (
