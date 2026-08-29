@@ -80,8 +80,24 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     }))
   }
 
+  useEffect(() => {
+    if (!started && !submitted) return
+
+    const resetScroll = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+      document.documentElement.scrollTop = 0
+      document.body.scrollTop = 0
+      if (document.scrollingElement) {
+        document.scrollingElement.scrollTop = 0
+      }
+    }
+
+    requestAnimationFrame(resetScroll)
+    const timer = window.setTimeout(resetScroll, 80)
+    return () => window.clearTimeout(timer)
+  }, [started, submitted])
+
   const handleStartQuiz = () => {
-    window.scrollTo({ top: 0, behavior: 'auto' })
     setStarted(true)
   }
 
@@ -163,7 +179,6 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     setLocalResult(response || result)
     setSubmitted(true)
     setSubmitting(false)
-    window.scrollTo({ top: 0, behavior: 'auto' })
   }
 
   const renderHeroShell = (title, message, actionNode) => (
