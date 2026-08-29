@@ -58,7 +58,8 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
 
   const isLoggedIn = Boolean(loggedUser?.id)
   const normalizedGuildStatus = String(guildStatus || '').trim().toLowerCase()
-  const hasGuildMembership = !['', 'not_in_guild', 'not_member', 'pending', 'memberless'].includes(normalizedGuildStatus)
+  const validMembershipStatuses = ['online', 'idle', 'dnd', 'streaming', 'member']
+  const hasGuildMembership = validMembershipStatuses.includes(normalizedGuildStatus) || (!['', 'offline', 'not_in_guild', 'not_member', 'pending', 'memberless'].includes(normalizedGuildStatus) && normalizedGuildStatus.length > 0)
   const isGuildVerified = isLoggedIn && hasGuildMembership
 
   const safeQuestions = Array.isArray(questions) ? questions : []
@@ -81,7 +82,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     setMembershipError('')
 
     const existingStatus = String(loggedUser?.status || '').trim().toLowerCase()
-    const validExistingStatus = !['', 'not_in_guild', 'not_member', 'pending', 'memberless'].includes(existingStatus)
+    const validExistingStatus = !['', 'offline', 'not_in_guild', 'not_member', 'pending', 'memberless'].includes(existingStatus)
 
     try {
       const response = await fetch('/api/discord/member-status', { credentials: 'same-origin' })
@@ -100,12 +101,12 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
       const nextStatus = String(data?.status || 'not_in_guild').trim().toLowerCase()
       setGuildStatus(nextStatus)
 
-      if (data?.member === true && !['', 'not_in_guild', 'not_member', 'pending', 'memberless'].includes(nextStatus)) {
+      if (data?.member === true && !['', 'offline', 'not_in_guild', 'not_member', 'pending', 'memberless'].includes(nextStatus)) {
         setMembershipError('')
         return
       }
 
-      if (validExistingStatus && !['not_in_guild', 'not_member', 'pending', 'memberless'].includes(nextStatus)) {
+      if (validExistingStatus && !['offline', 'not_in_guild', 'not_member', 'pending', 'memberless'].includes(nextStatus)) {
         setMembershipError('')
         return
       }
