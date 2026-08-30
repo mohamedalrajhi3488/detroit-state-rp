@@ -113,32 +113,7 @@ const defaultStaff = []
 
 const defaultShopProducts = []
 const defaultFaqState = Array.isArray(defaultFaqGroups) ? defaultFaqGroups : []
-const defaultQuizQuestions = [
-  {
-    id: 'quiz-q-1',
-    question: 'ما هو الهدف الأساسي لقاعدة السيرفر في المجتمع؟',
-    options: ['التنافس فقط', 'الحفاظ على النظام والانسجام والهدوء', 'الاستعراض فقط', 'إدارة السيرفر بشكل شخصي'],
-    correctIndex: 1
-  },
-  {
-    id: 'quiz-q-2',
-    question: 'ماذا يجب أن تفعل إذا واجهت مشكلة أو خلل في gameplay؟',
-    options: ['تجاهلها', 'تسجيل المشكلة في القناة المناسبة وطلب المساعدة', 'الاستمرار دون تنبيه', 'التحرش بالآخرين'],
-    correctIndex: 1
-  },
-  {
-    id: 'quiz-q-3',
-    question: 'هل يُسمح باستخدام التلاعب أو الحيل في السيرفر؟',
-    options: ['نعم، إذا كان سريعاً', 'لا، لأن هذا يخالف القوانين', 'نعم، إذا كان في المعارك', 'لا يوجد قانون'],
-    correctIndex: 1
-  },
-  {
-    id: 'quiz-q-4',
-    question: 'ما الذي يضمن تجربة إيجابية داخل المجتمع؟',
-    options: ['احترام اللاعبين والنظام والقوانين', 'التحدث فقط بالأوامر', 'عدم التفاعل', 'التخفي في كل الأوقات'],
-    correctIndex: 0
-  }
-]
+const defaultQuizQuestions = []
 const defaultQuizResults = []
 
 const normalizeStaff = (staff = []) => {

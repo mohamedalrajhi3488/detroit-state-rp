@@ -152,12 +152,7 @@ const resolvePageType = (page, fallbackIndex = 0) => {
 
 const roleOptions = ['Owner', 'Admin', 'Mod', 'Member']
 
-const defaultQuizQuestions = [
-  { id: 'quiz-q-1', question: 'ما هو الهدف الأساسي لقاعدة السيرفر في المجتمع؟', options: ['التنافس فقط', 'الحفاظ على النظام والانسجام والهدوء', 'الاستعراض فقط', 'إدارة السيرفر بشكل شخصي'], correctIndex: 1 },
-  { id: 'quiz-q-2', question: 'ماذا يجب أن تفعل إذا واجهت مشكلة أو خلل في gameplay؟', options: ['تجاهلها', 'تسجيل المشكلة في القناة المناسبة وطلب المساعدة', 'الاستمرار دون تنبيه', 'التحرش بالآخرين'], correctIndex: 1 },
-  { id: 'quiz-q-3', question: 'هل يُسمح باستخدام التلاعب أو الحيل في السيرفر؟', options: ['نعم، إذا كان سريعاً', 'لا، لأن هذا يخالف القوانين', 'نعم، إذا كان في المعارك', 'لا يوجد قانون'], correctIndex: 1 },
-  { id: 'quiz-q-4', question: 'ما الذي يضمن تجربة إيجابية داخل المجتمع؟', options: ['احترام اللاعبين والنظام والقوانين', 'التحدث فقط بالأوامر', 'عدم التفاعل', 'التخفي في كل الأوقات'], correctIndex: 0 }
-]
+const defaultQuizQuestions = []
 
 const getAvailableTabs = (role) => {
   const normalized = normalizeUserRole(role)
@@ -167,11 +162,11 @@ const getAvailableTabs = (role) => {
   }
 
   if (normalized === 'Admin') {
-    return ['dashboard', 'faq', 'quiz', 'quiz-results', 'shop', 'staff', 'news', 'activities']
+    return ['dashboard', 'quiz-results', 'news', 'activities']
   }
 
   if (normalized === 'Mod') {
-    return ['dashboard', 'faq', 'quiz', 'quiz-results', 'shop', 'news', 'activities']
+    return ['dashboard', 'quiz-results', 'news', 'activities']
   }
 
   return []
@@ -192,6 +187,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   const [userSearch, setUserSearch] = useState('')
   const [creatorSearch, setCreatorSearch] = useState('')
   const [activitySearch, setActivitySearch] = useState('')
+  const [quizResultsSearch, setQuizResultsSearch] = useState('')
   const [creatorFormOpen, setCreatorFormOpen] = useState(false)
   const [staffFormOpen, setStaffFormOpen] = useState(false)
   const [pageFormOpen, setPageFormOpen] = useState(false)
@@ -257,6 +253,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   const currentUserRole = normalizeUserRole(
     user?.role || users.find((userItem) => String(userItem.id) === String(user?.id))?.role || 'Member'
   )
+  const isOwner = currentUserRole === 'Owner'
   const allowedTabs = getAvailableTabs(currentUserRole)
 
   useEffect(() => {
@@ -426,6 +423,34 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     }
   }
 
+  const revokeQuizRole = async (result) => {
+    if (!result?.discordId) return
+
+    try {
+      const response = await fetch('/api/discord/remove-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: String(result.discordId), roleId: String(result.roleId || '1542968359266811944') })
+      })
+
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(payload?.error || 'role_removal_failed')
+      }
+
+      const nextResults = (quizResults || []).map((item) => String(item.id) === String(result.id)
+        ? { ...item, reviewed: false, passed: false, roleGranted: false }
+        : item)
+
+      setQuizResults(nextResults)
+      commitData(pages, users, creators, news, settings, shopProducts, staff, faqGroups, quizQuestions, nextResults)
+      notify('success', 'تم سحب رتبة النجاح بنجاح.')
+    } catch (error) {
+      console.warn('Discord role removal failed:', error)
+      notify('error', 'فشل سحب رتبة النجاح. تأكد من إعداد البوت والعضوية.')
+    }
+  }
+
   const deleteQuizResult = (resultId) => {
     const nextResults = (quizResults || []).filter((item) => String(item.id) !== String(resultId))
     setQuizResults(nextResults)
@@ -541,6 +566,28 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
       return haystack.includes(query)
     })
   }, [activityLog, activitySearch])
+
+  const filteredQuizResults = useMemo(() => {
+    const query = quizResultsSearch.trim().toLowerCase()
+    if (!query) return quizResults
+
+    return (quizResults || []).filter((result) => {
+      const haystack = [
+        result.userName,
+        result.discordId,
+        result.passed ? 'نجح' : 'لم ينجح',
+        result.passed ? 'passed' : 'failed',
+        String(result.score || 0),
+        String(result.total || 0),
+        formatQuizResultDate(result.submittedAt || Date.now()),
+        result.roleGranted ? 'تم المنح' : 'لم يتم المنح',
+        result.reviewed ? 'مراجع' : 'غير مراجع',
+        result.id
+      ].filter(Boolean).join(' ').toLowerCase()
+
+      return haystack.includes(query)
+    })
+  }, [quizResults, quizResultsSearch])
 
   const chartSeries = useMemo(() => {
     const labels = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
@@ -1753,14 +1800,24 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
               <h3>نتائج الأختبار الإلكتروني</h3>
             </div>
 
+            <div style={{ marginBottom: '1rem' }}>
+              <input
+                type="text"
+                value={quizResultsSearch}
+                onChange={(event) => setQuizResultsSearch(event.target.value)}
+                placeholder="بحث في النتائج: الاسم، النتيجة، الحالة، التاريخ..."
+                style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)', color: '#fff', outline: 'none' }}
+              />
+            </div>
+
             <div className="faq-admin-items">
-              {(quizResults || []).length === 0 && (
+              {(filteredQuizResults || []).length === 0 && (
                 <div className="faq-admin-item" style={{ padding: '1rem' }}>
-                  <p>لا توجد نتائج بعد.</p>
+                  <p>{quizResultsSearch ? 'لا توجد نتائج مطابقة للبحث.' : 'لا توجد نتائج بعد.'}</p>
                 </div>
               )}
 
-              {(quizResults || []).map((result) => {
+              {(filteredQuizResults || []).map((result) => {
                 const avatar = result.avatar || '/img/DS.webp'
 
                 return (
@@ -1775,12 +1832,19 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                       </div>
                       <div className="row-actions">
                         <button type="button" className="mini-btn" onClick={() => setExpandedResultId(expandedResultId === result.id ? null : result.id)}>تفاصيل</button>
-                        {result.passed && (
-                          <button type="button" className="mini-btn primary" onClick={() => awardQuizRole(result)} disabled={Boolean(result.reviewed || result.roleGranted)}>
-                            {result.reviewed || result.roleGranted ? 'تم المنح' : 'منح الرتبة'}
-                          </button>
+                        {result.passed && (currentUserRole === 'Owner' || currentUserRole === 'Admin' || currentUserRole === 'Mod') && (
+                          <>
+                            <button type="button" className="mini-btn primary" onClick={() => awardQuizRole(result)} disabled={Boolean(result.reviewed || result.roleGranted)}>
+                              {result.reviewed || result.roleGranted ? 'تم المنح' : 'منح الرتبة'}
+                            </button>
+                            <button type="button" className="mini-btn danger" onClick={() => revokeQuizRole(result)} disabled={Boolean(!result.reviewed && !result.roleGranted)}>
+                              سحب رتبة ناجح
+                            </button>
+                          </>
                         )}
-                        <button type="button" className="mini-btn danger" onClick={() => deleteQuizResult(result.id)}>حذف</button>
+                        {isOwner && (
+                          <button type="button" className="mini-btn danger" onClick={() => deleteQuizResult(result.id)}>حذف</button>
+                        )}
                       </div>
                     </div>
 
@@ -2528,13 +2592,15 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
           <div className="panel-card">
             <div className="panel-title-row">
               <h3>كل الأنشطة</h3>
-              <button
-                type="button"
-                className="mini-btn danger"
-                onClick={() => setActivityDeleteConfirm({ type: 'all', title: 'هل تريد حذف كل الأنشطة؟', message: 'سيتم حذف جميع السجلات في سجل الأنشطة نهائيًا.' })}
-              >
-                حذف الكل
-              </button>
+              {isOwner && (
+                <button
+                  type="button"
+                  className="mini-btn danger"
+                  onClick={() => setActivityDeleteConfirm({ type: 'all', title: 'هل تريد حذف كل الأنشطة؟', message: 'سيتم حذف جميع السجلات في سجل الأنشطة نهائيًا.' })}
+                >
+                  حذف الكل
+                </button>
+              )}
             </div>
 
             <div className="panel-search">
@@ -2571,13 +2637,15 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                     </div>
                     <div className="activity-stream-actions">
                       <time>{entryTimeText}</time>
-                      <button
-                        type="button"
-                        className="mini-btn danger"
-                        onClick={() => setActivityDeleteConfirm({ type: 'single', id: entry.id, title: 'هل تريد حذف هذا النشاط؟', message: 'سيتم حذف هذا السجل من قائمة الأنشطة بشكل دائم.' })}
-                      >
-                        حذف
-                      </button>
+                      {isOwner && (
+                        <button
+                          type="button"
+                          className="mini-btn danger"
+                          onClick={() => setActivityDeleteConfirm({ type: 'single', id: entry.id, title: 'هل تريد حذف هذا النشاط؟', message: 'سيتم حذف هذا السجل من قائمة الأنشطة بشكل دائم.' })}
+                        >
+                          حذف
+                        </button>
+                      )}
                     </div>
                   </div>
                 )

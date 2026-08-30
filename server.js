@@ -338,6 +338,40 @@ app.post('/api/discord/assign-role', async (req, res) => {
   }
 })
 
+app.post('/api/discord/remove-role', async (req, res) => {
+  const { userId, roleId } = req.body || {}
+
+  if (!userId || !roleId) {
+    return res.status(400).json({ error: 'Missing userId or roleId' })
+  }
+
+  if (!BOT_TOKEN || !TARGET_GUILD_ID) {
+    return res.status(503).json({ error: 'Discord bot is not configured for role removal' })
+  }
+
+  try {
+    const guildMemberResp = await axios.get(`https://discord.com/api/guilds/${TARGET_GUILD_ID}/members/${userId}`, {
+      headers: { Authorization: `Bot ${BOT_TOKEN}` }
+    })
+
+    const member = guildMemberResp.data || {}
+    const existingRoles = Array.isArray(member.roles) ? member.roles : []
+
+    if (existingRoles.includes(String(roleId))) {
+      await axios.delete(
+        `https://discord.com/api/guilds/${TARGET_GUILD_ID}/members/${userId}/roles/${roleId}`,
+        { headers: { Authorization: `Bot ${BOT_TOKEN}` } }
+      )
+    }
+
+    res.json({ ok: true, userId, roleId, removed: existingRoles.includes(String(roleId)) })
+  } catch (error) {
+    console.warn('Discord role removal failed:', error.response ? error.response.data : error.message)
+    const status = error.response?.status || 500
+    res.status(status).json({ error: 'Unable to remove role', details: error.response ? error.response.data : error.message })
+  }
+})
+
 app.post('/api/register-login', (req, res) => {
   const user = req.body || {}
   if (!user || !user.id) {
