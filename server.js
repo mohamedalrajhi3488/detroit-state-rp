@@ -156,8 +156,13 @@ const path = require('path');
 const clientDist = path.join(__dirname, 'client', 'dist');
 if (fs.existsSync(clientDist)) {
   app.use(express.static(clientDist));
-  // fallback to index.html in client/dist
-  app.get(['/', '/admin', '/admin/*'], (req, res, next) => {
+
+  const spaFallbackRoutes = ['/', '/admin', '/admin/*', '/account', '/account/*', '/login', '/login/*', '/faq', '/faq/*', '/quiz', '/quiz/*'];
+  app.get(spaFallbackRoutes, (req, res) => {
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+
+  app.get(/^\/(?!api\/).*/, (req, res) => {
     res.sendFile(path.join(clientDist, 'index.html'));
   });
 }
