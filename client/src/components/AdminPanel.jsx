@@ -639,7 +639,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
         setDashboardStats({
           members: Number(discordData?.count || 0),
           onlinePlayers: Number.isFinite(onlinePlayers) ? onlinePlayers : 0,
-          supportTickets: Math.max(0, users.length - 1),
+          supportTickets: creators.length,
           registeredUsers: users.length
         })
       } catch {
@@ -647,7 +647,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
         setDashboardStats({
           members: users.length,
           onlinePlayers: 0,
-          supportTickets: Math.max(0, users.length - 1),
+          supportTickets: creators.length,
           registeredUsers: users.length
         })
       }
@@ -656,7 +656,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     loadDashboardStats()
     const intervalId = window.setInterval(loadDashboardStats, 15000)
     return () => { active = false; window.clearInterval(intervalId) }
-  }, [users.length])
+  }, [users.length, creators.length])
 
   const openActivityFeed = () => {
     setSelectedTab('activities')
@@ -1495,11 +1495,11 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
 
               <div className="metric-card accent-cyan">
                 <div className="metric-copy">
-                  <span>تذاكر الدعم</span>
+                  <span>صناع المحتوى</span>
                   <div className="metric-row">
-                    <strong>{dashboardStats.supportTickets || 0}</strong>
-                    <div className="metric-message-badge" aria-label="Support ticket message badge">
-                      <img src="/img/badge3.png" alt="Support ticket badge" />
+                    <strong>{dashboardStats.supportTickets || creators.length || 0}</strong>
+                    <div className="metric-message-badge" aria-label="Creators badge">
+                      <img src="/img/badge3.png" alt="Creators badge" />
                     </div>
                   </div>
                 </div>
@@ -1809,13 +1809,14 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
               <h3>نتائج الأختبار الإلكتروني</h3>
             </div>
 
-            <div style={{ marginBottom: '1rem' }}>
+            <div className="panel-search" style={{ marginBottom: '1rem' }}>
+              <span className="panel-search-icon">⌕</span>
               <input
-                type="text"
+                type="search"
                 value={quizResultsSearch}
                 onChange={(event) => setQuizResultsSearch(event.target.value)}
                 placeholder="بحث في النتائج: الاسم، النتيجة، الحالة، التاريخ..."
-                style={{ width: '100%', padding: '0.8rem 1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)', color: '#fff', outline: 'none' }}
+                aria-label="بحث في نتائج الاختبار"
               />
             </div>
 
