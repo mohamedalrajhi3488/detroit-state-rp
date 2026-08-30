@@ -868,7 +868,17 @@ export default function App() {
         return
       }
 
+      if (path === '/account') {
+        setScreen('account')
+        setCurrentPage('account')
+        return
+      }
+
       if (screen === 'admin' && path !== '/admin') {
+        setScreen('home')
+      }
+
+      if (screen === 'account' && path !== '/account') {
         setScreen('home')
       }
 
@@ -1401,6 +1411,10 @@ export default function App() {
           onAccountOpen={() => {
             setAccountMenuOpen(false)
             setScreen('account')
+            setCurrentPage('account')
+            if (typeof window !== 'undefined') {
+              window.history.pushState({}, '', '/account')
+            }
           }}
           onLogout={handleLogout}
           onAdminClick={() => {
@@ -1521,6 +1535,14 @@ export default function App() {
         onAccountOpen={() => {
           setAccountMenuOpen(false)
           setScreen('account')
+          setCurrentPage('account')
+          if (typeof window !== 'undefined') {
+            window.history.pushState({}, '', '/account')
+          }
+          setCurrentPage('account')
+          if (typeof window !== 'undefined') {
+            window.history.pushState({}, '', '/account')
+          }
         }}
         onLogout={handleLogout}
         onAdminClick={() => {
