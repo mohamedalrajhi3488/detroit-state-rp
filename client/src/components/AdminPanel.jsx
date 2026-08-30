@@ -419,6 +419,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
       const nextResults = (quizResults || []).map((item) => String(item.id) === String(result.id) ? { ...item, reviewed: true, passed: true, roleGranted: true } : item)
       setQuizResults(nextResults)
       commitData(pages, users, creators, news, settings, shopProducts, staff, faqGroups, quizQuestions, nextResults)
+      addAdminActivity('منح رتبة نجاح', `المستخدم ${user?.name || user?.username || 'Admin'} قام بمنح رتبة النجاح للمستخدم: ${result?.userName || result?.discordId || 'غير معروف'}`, 'green')
       notify('success', 'تم منح رتبة النجاح بنجاح.')
     } catch (error) {
       console.warn('Discord role assignment failed:', error)
@@ -449,6 +450,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
 
       setQuizResults(nextResults)
       commitData(pages, users, creators, news, settings, shopProducts, staff, faqGroups, quizQuestions, nextResults)
+      addAdminActivity('سحب رتبة نجاح', `المستخدم ${user?.name || user?.username || 'Admin'} قام بسحب رتبة النجاح من المستخدم: ${result?.userName || result?.discordId || 'غير معروف'}`, 'pink')
       notify('success', 'تم سحب رتبة النجاح بنجاح.')
     } catch (error) {
       console.warn('Discord role removal failed:', error)
