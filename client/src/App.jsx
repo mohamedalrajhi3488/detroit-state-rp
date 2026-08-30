@@ -862,6 +862,15 @@ export default function App() {
       const hash = window.location.hash.replace('#/', '').trim()
       const path = window.location.pathname.replace(/\/+$/, '')
 
+      if (!loggedUser && path === '/account') {
+        setScreen('home')
+        setCurrentPage('home')
+        if (typeof window !== 'undefined' && window.location.pathname !== '/') {
+          window.history.replaceState({}, '', '/')
+        }
+        return
+      }
+
       if (path === '/admin') {
         setScreen('admin')
         setCurrentPage('home')
@@ -1034,6 +1043,7 @@ export default function App() {
     setLoggedUser(null)
     setAccountMenuOpen(false)
     setScreen('home')
+    setCurrentPage('home')
 
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem(LOGGED_USER_KEY)
@@ -1043,9 +1053,8 @@ export default function App() {
         processingLoginIdsRef.current.delete(String(currentUserId))
       }
       document.cookie = 'sid=; Max-Age=0; path=/; SameSite=Lax'
-      if (window.location.pathname === '/admin') {
-        window.history.pushState({}, '', '/')
-      }
+      window.history.pushState({}, '', '/')
+      window.location.hash = ''
     }
 
     try {
@@ -1482,7 +1491,20 @@ export default function App() {
             </div>
 
             <div className="account-actions">
-              <button type="button" className="account-primary-btn" onClick={() => setScreen('home')}>العودة للرئيسية</button>
+              <button
+                type="button"
+                className="account-primary-btn"
+                onClick={() => {
+                  setScreen('home')
+                  setCurrentPage('home')
+                  if (typeof window !== 'undefined') {
+                    window.history.pushState({}, '', '/')
+                    window.location.hash = ''
+                  }
+                }}
+              >
+                العودة للرئيسية
+              </button>
               <button type="button" className="account-secondary-btn" onClick={handleLogout}>تسجيل الخروج</button>
             </div>
           </section>
