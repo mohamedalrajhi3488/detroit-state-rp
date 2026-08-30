@@ -1440,23 +1440,25 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
         <div className={`notice-box ${notice.type}`}>{notice.text}</div>
 
         {pendingDelete && (
-          <div className="delete-confirm-panel">
-            <div className="delete-confirm-header">
+          <div className="delete-confirm-overlay" onClick={() => setPendingDelete(null)}>
+            <div className="delete-confirm-modal" onClick={(event) => event.stopPropagation()}>
+              <div className="delete-confirm-icon">!</div>
               <h4>هل أنت متأكد؟</h4>
-            </div>
-            <p>
-              سيتم حذف <strong>{pendingDelete.name}</strong> من {
-                pendingDelete.type === 'page' ? 'الصفحات'
-                : pendingDelete.type === 'user' ? 'الحسابات'
-                : pendingDelete.type === 'creator' ? 'صناع المحتوى'
-                : pendingDelete.type === 'news' ? 'الأخبار'
-                : pendingDelete.type === 'product' ? 'المتجر'
-                : 'المحتوى'
-              }.
-            </p>
-            <div className="creator-form-actions">
-              <button type="button" className="mini-btn danger" onClick={confirmDelete}>تأكيد الحذف</button>
-              <button type="button" className="mini-btn" onClick={() => setPendingDelete(null)}>إلغاء</button>
+              <p>
+                سيتم حذف <strong>{pendingDelete.name}</strong> من {
+                  pendingDelete.type === 'page' ? 'الصفحات'
+                  : pendingDelete.type === 'user' ? 'الحسابات'
+                  : pendingDelete.type === 'creator' ? 'صناع المحتوى'
+                  : pendingDelete.type === 'news' ? 'الأخبار'
+                  : pendingDelete.type === 'product' ? 'المتجر'
+                  : pendingDelete.type === 'staff' ? 'الطاقم الإداري'
+                  : 'المحتوى'
+                }.
+              </p>
+              <div className="delete-confirm-actions">
+                <button type="button" className="mini-btn danger" onClick={confirmDelete}>تأكيد الحذف</button>
+                <button type="button" className="mini-btn" onClick={() => setPendingDelete(null)}>إلغاء</button>
+              </div>
             </div>
           </div>
         )}
