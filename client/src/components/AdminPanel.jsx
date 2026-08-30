@@ -401,11 +401,13 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   const awardQuizRole = async (result) => {
     if (!result?.discordId) return
 
+    const resolvedRoleId = String(result.roleId || settings?.successRoleId || '1542968359266811944')
+
     try {
       const response = await fetch('/api/discord/assign-role', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: String(result.discordId), roleId: String(result.roleId || '1542968359266811944') })
+        body: JSON.stringify({ userId: String(result.discordId), roleId: resolvedRoleId })
       })
 
       const payload = await response.json().catch(() => ({}))
@@ -426,11 +428,13 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   const revokeQuizRole = async (result) => {
     if (!result?.discordId) return
 
+    const resolvedRoleId = String(result.roleId || settings?.successRoleId || '1542968359266811944')
+
     try {
       const response = await fetch('/api/discord/remove-role', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: String(result.discordId), roleId: String(result.roleId || '1542968359266811944') })
+        body: JSON.stringify({ userId: String(result.discordId), roleId: resolvedRoleId })
       })
 
       const payload = await response.json().catch(() => ({}))

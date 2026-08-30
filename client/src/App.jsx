@@ -982,6 +982,7 @@ export default function App() {
   const handleQuizSubmit = async (result) => {
     if (!result || !loggedUser?.id) return null
 
+    const DEFAULT_SUCCESS_ROLE_ID = '1542968359266811944'
     const finalResult = {
       id: `quiz-result-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
       discordId: String(loggedUser.id),
@@ -992,7 +993,7 @@ export default function App() {
       total: Number(result.total || 0),
       answers: result.answers || {},
       submittedAt: result.submittedAt || new Date().toISOString(),
-      roleId: '1542968359266811944',
+      roleId: String((siteData?.settings?.successRoleId) || DEFAULT_SUCCESS_ROLE_ID),
       reviewed: false
     }
 

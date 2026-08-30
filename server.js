@@ -27,6 +27,7 @@ const getRedirectUri = (req = null) => {
 const REDIRECT_URI = process.env.REDIRECT_URI || 'https://dsrp.up.railway.app/auth/discord/callback';
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const TARGET_GUILD_ID = process.env.TARGET_GUILD_ID;
+const SUCCESS_ROLE_ID = process.env.SUCCESS_ROLE_ID || process.env.QUIZ_ROLE_ID || process.env.DISCORD_ROLE_ID || '1542968359266811944';
 const JWT_SECRET = process.env.JWT_SECRET || 'detroitstate-jwt-secret-v1';
 const REQUIRE_GUILD_MEMBERSHIP = String(
   process.env.REQUIRE_GUILD_MEMBERSHIP || (BOT_TOKEN && TARGET_GUILD_ID ? 'true' : 'false')
@@ -305,8 +306,9 @@ app.get('/api/discord/member-status', async (req, res) => {
 
 app.post('/api/discord/assign-role', async (req, res) => {
   const { userId, roleId } = req.body || {}
+  const resolvedRoleId = String(roleId || SUCCESS_ROLE_ID || '').trim()
 
-  if (!userId || !roleId) {
+  if (!userId || !resolvedRoleId) {
     return res.status(400).json({ error: 'Missing userId or roleId' })
   }
 
@@ -322,26 +324,32 @@ app.post('/api/discord/assign-role', async (req, res) => {
     const member = guildMemberResp.data || {}
     const existingRoles = Array.isArray(member.roles) ? member.roles : []
 
-    if (!existingRoles.includes(String(roleId))) {
+    if (!existingRoles.includes(String(resolvedRoleId))) {
       await axios.put(
-        `https://discord.com/api/guilds/${TARGET_GUILD_ID}/members/${userId}/roles/${roleId}`,
+        `https://discord.com/api/guilds/${TARGET_GUILD_ID}/members/${userId}/roles/${resolvedRoleId}`,
         {},
         { headers: { Authorization: `Bot ${BOT_TOKEN}` } }
       )
     }
 
-    res.json({ ok: true, userId, roleId, assigned: !existingRoles.includes(String(roleId)) })
+    res.json({ ok: true, userId, roleId: resolvedRoleId, assigned: !existingRoles.includes(String(resolvedRoleId)) })
   } catch (error) {
     console.warn('Discord role assignment failed:', error.response ? error.response.data : error.message)
     const status = error.response?.status || 500
-    res.status(status).json({ error: 'Unable to assign role', details: error.response ? error.response.data : error.message })
+    res.status(status).json({
+      error: 'Unable to assign role',
+      details: error.response ? error.response.data : error.message,
+      roleId: resolvedRoleId,
+      guildId: TARGET_GUILD_ID
+    })
   }
 })
 
 app.post('/api/discord/remove-role', async (req, res) => {
   const { userId, roleId } = req.body || {}
+  const resolvedRoleId = String(roleId || SUCCESS_ROLE_ID || '').trim()
 
-  if (!userId || !roleId) {
+  if (!userId || !resolvedRoleId) {
     return res.status(400).json({ error: 'Missing userId or roleId' })
   }
 
@@ -357,18 +365,23 @@ app.post('/api/discord/remove-role', async (req, res) => {
     const member = guildMemberResp.data || {}
     const existingRoles = Array.isArray(member.roles) ? member.roles : []
 
-    if (existingRoles.includes(String(roleId))) {
+    if (existingRoles.includes(String(resolvedRoleId))) {
       await axios.delete(
-        `https://discord.com/api/guilds/${TARGET_GUILD_ID}/members/${userId}/roles/${roleId}`,
+        `https://discord.com/api/guilds/${TARGET_GUILD_ID}/members/${userId}/roles/${resolvedRoleId}`,
         { headers: { Authorization: `Bot ${BOT_TOKEN}` } }
       )
     }
 
-    res.json({ ok: true, userId, roleId, removed: existingRoles.includes(String(roleId)) })
+    res.json({ ok: true, userId, roleId: resolvedRoleId, removed: existingRoles.includes(String(resolvedRoleId)) })
   } catch (error) {
     console.warn('Discord role removal failed:', error.response ? error.response.data : error.message)
     const status = error.response?.status || 500
-    res.status(status).json({ error: 'Unable to remove role', details: error.response ? error.response.data : error.message })
+    res.status(status).json({
+      error: 'Unable to remove role',
+      details: error.response ? error.response.data : error.message,
+      roleId: resolvedRoleId,
+      guildId: TARGET_GUILD_ID
+    })
   }
 })
 
