@@ -395,6 +395,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   const saveQuizDraft = () => {
     setQuizQuestions(quizDraftQuestions)
     commitData(pages, users, creators, news, settings, shopProducts, staff, faqGroups, quizDraftQuestions, quizResults)
+    addAdminActivity('تعديل أسئلة الاختبار', `المستخدم ${user?.name || user?.username || 'Admin'} قام بتعديل أسئلة الاختبار الإلكتروني.`, 'gold')
     notify('success', 'تم حفظ أسئلة الاختبار بنجاح.')
   }
 
@@ -456,10 +457,39 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   }
 
   const deleteQuizResult = (resultId) => {
+    const result = (quizResults || []).find((item) => String(item.id) === String(resultId))
     const nextResults = (quizResults || []).filter((item) => String(item.id) !== String(resultId))
     setQuizResults(nextResults)
     commitData(pages, users, creators, news, settings, shopProducts, staff, faqGroups, quizQuestions, nextResults)
+    addAdminActivity('حذف نتيجة اختبار', `المستخدم ${user?.name || user?.username || 'Admin'} قام بحذف نتيجة الاختبار: ${result?.userName || 'غير معروف'}`, 'pink')
     notify('success', 'تم حذف نتيجة الاختبار بنجاح.')
+  }
+
+  const deleteFaqGroup = (groupId) => {
+    const group = (faqDraftGroups || []).find((item) => item.id === groupId)
+    const nextGroups = (faqDraftGroups || []).filter((item) => item.id !== groupId)
+    setFaqDraftGroups(nextGroups)
+    addAdminActivity('حذف قسم أسئلة', `المستخدم ${user?.name || user?.username || 'Admin'} قام بحذف قسم الأسئلة: ${group?.title || 'غير معروف'}`, 'pink')
+    notify('success', 'تم حذف قسم الأسئلة بنجاح.')
+  }
+
+  const deleteFaqItem = (groupId, itemId) => {
+    const group = (faqDraftGroups || []).find((entry) => entry.id === groupId)
+    const item = (group?.items || []).find((questionItem) => questionItem.id === itemId)
+    const nextGroups = (faqDraftGroups || []).map((groupEntry) => groupEntry.id === groupId
+      ? { ...groupEntry, items: (groupEntry.items || []).filter((questionItem) => questionItem.id !== itemId) }
+      : groupEntry)
+    setFaqDraftGroups(nextGroups)
+    addAdminActivity('حذف سؤال', `المستخدم ${user?.name || user?.username || 'Admin'} قام بحذف سؤال من قسم ${group?.title || 'الأسئلة'}: ${item?.question || 'غير معروف'}`, 'pink')
+    notify('success', 'تم حذف السؤال بنجاح.')
+  }
+
+  const deleteQuizQuestion = (questionIndex) => {
+    const question = (quizDraftQuestions || [])[questionIndex]
+    const nextQuestions = (quizDraftQuestions || []).filter((_, index) => index !== questionIndex)
+    setQuizDraftQuestions(nextQuestions)
+    addAdminActivity('حذف سؤال اختبار', `المستخدم ${user?.name || user?.username || 'Admin'} قام بحذف سؤال الاختبار: ${question?.question || `السؤال ${questionIndex + 1}`}`, 'pink')
+    notify('success', 'تم حذف السؤال بنجاح.')
   }
 
   const resolveActivityAvatar = (entry) => {
@@ -719,8 +749,8 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   }
 
   const deleteUser = (id) => {
-    const userToDelete = users.find((userItem) => userItem.id !== id)
-    const nextUsers = users.filter((userItem) => userItem.id !== id)
+    const userToDelete = users.find((userItem) => String(userItem.id) === String(id))
+    const nextUsers = users.filter((userItem) => String(userItem.id) !== String(id))
     commitData(pages, nextUsers, creators, news, settings)
     addAdminActivity('حذف حساب', `المستخدم ${user?.name || user?.username || 'Admin'} قام بحذف الحساب: ${userToDelete?.name || 'غير معروف'}`, 'pink')
     notify('success', 'تم حذف المستخدم بنجاح.')
@@ -1342,6 +1372,14 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
       deleteNewsItem(pendingDelete.id)
     } else if (pendingDelete.type === 'product') {
       deleteShopProduct(pendingDelete.id)
+    } else if (pendingDelete.type === 'faq-group') {
+      deleteFaqGroup(pendingDelete.id)
+    } else if (pendingDelete.type === 'faq-item') {
+      deleteFaqItem(pendingDelete.groupId, pendingDelete.id)
+    } else if (pendingDelete.type === 'quiz-question') {
+      deleteQuizQuestion(pendingDelete.index)
+    } else if (pendingDelete.type === 'quiz-result') {
+      deleteQuizResult(pendingDelete.id)
     }
 
     setPendingDelete(null)
@@ -1452,6 +1490,10 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                   : pendingDelete.type === 'news' ? 'الأخبار'
                   : pendingDelete.type === 'product' ? 'المتجر'
                   : pendingDelete.type === 'staff' ? 'الطاقم الإداري'
+                  : pendingDelete.type === 'faq-group' ? 'الأسئلة الشائعة'
+                  : pendingDelete.type === 'faq-item' ? 'أسئلة القسم'
+                  : pendingDelete.type === 'quiz-question' ? 'أسئلة الاختبار'
+                  : pendingDelete.type === 'quiz-result' ? 'نتائج الاختبار'
                   : 'المحتوى'
                 }.
               </p>
@@ -1750,10 +1792,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                         nextQuestions.splice(Math.min(nextQuestions.length, questionIndex + 1), 0, selected)
                         setQuizDraftQuestions(nextQuestions)
                       }} disabled={questionIndex === quizDraftQuestions.length - 1}>↓</button>
-                      <button type="button" className="mini-btn danger" onClick={() => {
-                        const nextQuestions = quizDraftQuestions.filter((_, index) => index !== questionIndex)
-                        setQuizDraftQuestions(nextQuestions)
-                      }}>حذف</button>
+                      <button type="button" className="mini-btn danger" onClick={() => setPendingDelete({ type: 'quiz-question', index: questionIndex, name: question.question || `السؤال ${questionIndex + 1}` })}>حذف</button>
                     </div>
                   </div>
 
@@ -1855,7 +1894,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                           </>
                         )}
                         {isOwner && (
-                          <button type="button" className="mini-btn danger" onClick={() => deleteQuizResult(result.id)}>حذف</button>
+                          <button type="button" className="mini-btn danger" onClick={() => setPendingDelete({ type: 'quiz-result', id: result.id, name: result.userName || 'نتيجة الاختبار' })}>حذف</button>
                         )}
                       </div>
                     </div>
@@ -1957,6 +1996,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                     onClick={() => {
                       setFaqGroups(faqDraftGroups)
                       commitData(pages, users, creators, news, settings, shopProducts, staff, faqDraftGroups)
+                      addAdminActivity('تعديل الأسئلة الشائعة', `المستخدم ${user?.name || user?.username || 'Admin'} قام بتعديل الأسئلة الشائعة.`, 'gold')
                       notify('success', 'تم حفظ تعديلات الأسئلة بنجاح.')
                     }}
                   >
@@ -1991,10 +2031,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                         nextGroups.splice(Math.min(nextGroups.length, groupIndex + 1), 0, item)
                         setFaqDraftGroups(nextGroups)
                       }} disabled={groupIndex === faqDraftGroups.length - 1}>↓</button>
-                      <button type="button" className="mini-btn danger" onClick={() => {
-                        const nextGroups = faqDraftGroups.filter((item) => item.id !== group.id)
-                        setFaqDraftGroups(nextGroups)
-                      }}>حذف</button>
+                      <button type="button" className="mini-btn danger" onClick={() => setPendingDelete({ type: 'faq-group', id: group.id, name: group.title || 'هذا القسم' })}>حذف</button>
                     </div>
                   </div>
 
@@ -2048,13 +2085,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                             nextGroups[groupIndex] = { ...nextGroups[groupIndex], items }
                             setFaqDraftGroups(nextGroups)
                           }} disabled={itemIndex === (group.items || []).length - 1}>↓</button>
-                          <button type="button" className="mini-btn danger" onClick={() => {
-                            const nextGroups = faqDraftGroups.map((groupItem) => groupItem.id === group.id ? {
-                              ...groupItem,
-                              items: (groupItem.items || []).filter((questionItem) => questionItem.id !== item.id)
-                            } : groupItem)
-                            setFaqDraftGroups(nextGroups)
-                          }}>حذف</button>
+                          <button type="button" className="mini-btn danger" onClick={() => setPendingDelete({ type: 'faq-item', id: item.id, groupId: group.id, name: item.question || 'هذا السؤال' })}>حذف</button>
                         </div>
                       </div>
                     ))}
