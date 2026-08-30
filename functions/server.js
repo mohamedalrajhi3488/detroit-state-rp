@@ -13,7 +13,7 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const BOT_TOKEN = process.env.BOT_TOKEN || process.env.DISCORD_TOKEN;
 const TARGET_GUILD_ID = process.env.TARGET_GUILD_ID;
-const JWT_SECRET = process.env.JWT_SECRET || process.env.CLIENT_SECRET || 'dsrp-login-secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'detroitstate-jwt-secret-v1';
 const REQUIRE_GUILD_MEMBERSHIP = String(
     process.env.REQUIRE_GUILD_MEMBERSHIP || (BOT_TOKEN && TARGET_GUILD_ID ? 'true' : 'false')
 ).toLowerCase() === 'true';
@@ -72,11 +72,12 @@ router.get('/auth/discord/callback', async (req, res) => {
         const token = jwt.sign(user, JWT_SECRET, { expiresIn: '7d' });
 
         // MaxAge helps the browser keep the cookie
+        const isHttps = req.secure || (req.headers['x-forwarded-proto'] || '').split(',')[0].trim().toLowerCase() === 'https' || !String(req.headers.host || '').includes('localhost');
         res.cookie('sid', token, {
             httpOnly: true,
             path: '/',
             sameSite: 'lax',
-            secure: process.env.NODE_ENV === 'production' || !req.headers.host.includes('localhost'),
+            secure: isHttps,
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
@@ -99,7 +100,7 @@ router.get('/me', (req, res) => {
     }
 });
 
-app.get(/^\/(?!api\/|auth\/|logout$).*/, (req, res) => {
+app.get(/^\/(?!api\/|auth\/|logout$|me$).*/, (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'client', 'dist', 'index.html'));
 });
 

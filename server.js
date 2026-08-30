@@ -27,7 +27,7 @@ const getRedirectUri = (req = null) => {
 const REDIRECT_URI = process.env.REDIRECT_URI || 'https://dsrp.up.railway.app/auth/discord/callback';
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const TARGET_GUILD_ID = process.env.TARGET_GUILD_ID;
-const JWT_SECRET = process.env.JWT_SECRET || process.env.CLIENT_SECRET || 'dsrp-login-secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'detroitstate-jwt-secret-v1';
 const REQUIRE_GUILD_MEMBERSHIP = String(
   process.env.REQUIRE_GUILD_MEMBERSHIP || (BOT_TOKEN && TARGET_GUILD_ID ? 'true' : 'false')
 ).toLowerCase() === 'true';
@@ -88,6 +88,19 @@ const addRegisteredUser = (user) => {
 
   REGISTERED_USERS.set(String(user.id), normalizedUser)
   return normalizedUser
+}
+
+const getCookieOptions = (req) => {
+  const forwardedProto = req.headers['x-forwarded-proto']
+  const isHttps = req.secure || (typeof forwardedProto === 'string' && forwardedProto.split(',')[0].trim().toLowerCase() === 'https') || (req.headers.host && !String(req.headers.host).includes('localhost'))
+
+  return {
+    httpOnly: true,
+    path: '/',
+    sameSite: 'lax',
+    secure: isHttps,
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  }
 }
 
 const createSignedUserToken = (user) => {
@@ -162,7 +175,7 @@ if (fs.existsSync(clientDist)) {
     res.sendFile(path.join(clientDist, 'index.html'));
   });
 
-  app.get(/^\/(?!api\/|auth\/|logout$).*/, (req, res) => {
+  app.get(/^\/(?!api\/|auth\/|logout$|me$).*/, (req, res) => {
     res.sendFile(path.join(clientDist, 'index.html'));
   });
 }
@@ -453,13 +466,7 @@ app.get('/auth/discord/callback', async (req, res) => {
     }
 
     const token = createSignedUserToken(signedUser);
-    res.cookie('sid', token, {
-      httpOnly: true,
-      path: '/',
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production' || !req.headers.host.includes('localhost'),
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
+    res.cookie('sid', token, getCookieOptions(req));
     res.redirect('/');
   } catch (err) {
     console.error('OAuth error', err.response ? err.response.data : err.message);
@@ -480,13 +487,7 @@ app.get('/me', async (req, res) => {
         const liveStatus = await getGuildMembership(user.id, fallbackMember, user.status)
         const refreshedUser = { ...user, status: liveStatus.status, isMember: liveStatus.member }
         const refreshedToken = createSignedUserToken(refreshedUser)
-        res.cookie('sid', refreshedToken, {
-          httpOnly: true,
-          path: '/',
-          sameSite: 'lax',
-          secure: process.env.NODE_ENV === 'production' || !req.headers.host.includes('localhost'),
-          maxAge: 7 * 24 * 60 * 60 * 1000
-        })
+        res.cookie('sid', refreshedToken, getCookieOptions(req))
 
         return res.json({
           id: refreshedUser.id,
@@ -526,7 +527,7 @@ app.post('/logout', (req, res) => {
     }
   }
 
-  res.clearCookie('sid', { httpOnly: true, path: '/', sameSite: 'lax' });
+  res.clearCookie('sid', { httpOnly: true, path: '/', sameSite: 'lax', secure: String(req.headers.host || '').includes('localhost') ? false : true });
   res.json({ ok: true });
 });
 
