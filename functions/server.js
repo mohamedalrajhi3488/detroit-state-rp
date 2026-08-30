@@ -36,10 +36,6 @@ const getRedirectUri = (req) => {
 app.use(cookieParser());
 app.use(express.json());
 
-app.get(/^\/(?!api\/).*/, (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'client', 'dist', 'index.html'));
-});
-
 router.get('/auth/discord', (req, res) => {
     const redirectUri = getRedirectUri(req);
     const scope = REQUIRE_GUILD_MEMBERSHIP ? 'identify%20email%20guilds%20guilds.join' : 'identify%20email';
@@ -101,6 +97,10 @@ router.get('/me', (req, res) => {
     } catch (err) {
         return res.status(401).json({ error: 'session_invalid' });
     }
+});
+
+app.get(/^\/(?!api\/|auth\/|logout$).*/, (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'client', 'dist', 'index.html'));
 });
 
 router.get('/api/streamer-info', async (req, res) => {

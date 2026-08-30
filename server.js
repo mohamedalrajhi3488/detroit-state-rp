@@ -162,7 +162,7 @@ if (fs.existsSync(clientDist)) {
     res.sendFile(path.join(clientDist, 'index.html'));
   });
 
-  app.get(/^\/(?!api\/).*/, (req, res) => {
+  app.get(/^\/(?!api\/|auth\/|logout$).*/, (req, res) => {
     res.sendFile(path.join(clientDist, 'index.html'));
   });
 }
