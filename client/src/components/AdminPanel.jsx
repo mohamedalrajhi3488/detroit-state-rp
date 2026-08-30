@@ -439,7 +439,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
       }
 
       const nextResults = (quizResults || []).map((item) => String(item.id) === String(result.id)
-        ? { ...item, reviewed: false, passed: false, roleGranted: false }
+        ? { ...item, reviewed: false, passed: true, roleGranted: false }
         : item)
 
       setQuizResults(nextResults)
@@ -1292,6 +1292,11 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   }
 
   const deleteNewsItem = (id) => {
+    if (!isOwner) {
+      notify('error', 'لا توجد صلاحية حذف الأخبار إلا لصاحب الموقع.')
+      return
+    }
+
     const itemToDelete = news.find((item) => item.id === id)
     const nextNews = news.filter((item) => item.id !== id)
     commitData(pages, users, creators, nextNews, settings)
@@ -1832,7 +1837,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                       </div>
                       <div className="row-actions">
                         <button type="button" className="mini-btn" onClick={() => setExpandedResultId(expandedResultId === result.id ? null : result.id)}>تفاصيل</button>
-                        {result.passed && (currentUserRole === 'Owner' || currentUserRole === 'Admin' || currentUserRole === 'Mod') && (
+                        {(result.passed || result.reviewed || result.roleGranted) && (currentUserRole === 'Owner' || currentUserRole === 'Admin' || currentUserRole === 'Mod') && (
                           <>
                             <button type="button" className="mini-btn primary" onClick={() => awardQuizRole(result)} disabled={Boolean(result.reviewed || result.roleGranted)}>
                               {result.reviewed || result.roleGranted ? 'تم المنح' : 'منح الرتبة'}
@@ -2578,7 +2583,9 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                   <div className="row-actions">
                     <button type="button" className="mini-btn" onClick={() => { setNewsForm({ ...item, visible: item.visible !== false }); setNewsFormOpen(true) }}>تعديل</button>
                     <button type="button" className="mini-btn" onClick={() => toggleNewsItem(item.id)}>{item.visible === false ? 'إظهار' : 'إخفاء'}</button>
-                    <button type="button" className="mini-btn danger" onClick={() => setPendingDelete({ type: 'news', id: item.id, name: item.title })}>حذف</button>
+                    {isOwner && (
+                      <button type="button" className="mini-btn danger" onClick={() => setPendingDelete({ type: 'news', id: item.id, name: item.title })}>حذف</button>
+                    )}
                   </div>
                 </div>
               )) : (
