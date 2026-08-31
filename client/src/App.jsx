@@ -983,6 +983,7 @@ export default function App() {
     if (!result || !loggedUser?.id) return null
 
     const DEFAULT_SUCCESS_ROLE_ID = '1542968359266811944'
+    const resolvedRoleId = String(siteData?.settings?.successRoleId || DEFAULT_SUCCESS_ROLE_ID)
     const finalResult = {
       id: `quiz-result-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
       discordId: String(loggedUser.id),
@@ -993,8 +994,21 @@ export default function App() {
       total: Number(result.total || 0),
       answers: result.answers || {},
       submittedAt: result.submittedAt || new Date().toISOString(),
-      roleId: String((siteData?.settings?.successRoleId) || DEFAULT_SUCCESS_ROLE_ID),
-      reviewed: false
+      roleId: resolvedRoleId,
+      reviewed: Boolean(result.passed),
+      roleGranted: Boolean(result.passed)
+    }
+
+    if (result.passed) {
+      try {
+        await fetch('/api/discord/assign-role', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: String(loggedUser.id), roleId: resolvedRoleId })
+        })
+      } catch {
+        // keep the quiz result saved locally even if the role assignment request fails
+      }
     }
 
     setSiteData((current) => ({
@@ -1379,7 +1393,9 @@ export default function App() {
     const latestAccountQuizResult = [...(siteData.quizResults || [])]
       .filter((entry) => String(entry?.discordId || '') === String(loggedUser?.id || ''))
       .sort((a, b) => new Date(b?.submittedAt || 0).getTime() - new Date(a?.submittedAt || 0).getTime())[0] || null
-    const accountQuizStatus = latestAccountQuizResult ? (latestAccountQuizResult.passed ? 'ناجح' : 'لم ينجح') : 'لم يتم الاختبار'
+    const accountQuizStatus = latestAccountQuizResult
+      ? (latestAccountQuizResult.passed === true ? 'ناجح' : 'لم ينجح')
+      : 'لم يبدأ الاختبار'
 
     return (
       <div className="app-shell">

@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-
-const QUIZ_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000
+import { getQuizEligibility, QUIZ_COOLDOWN_MS } from '../quizStatusUtils.mjs'
 
 const buildScoreSummary = (questions, answers = {}) => {
   let correct = 0
@@ -84,20 +83,21 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
       .sort((a, b) => new Date(b?.submittedAt || 0).getTime() - new Date(a?.submittedAt || 0).getTime())[0] || null
   }, [loggedUser?.id, quizResults])
 
-  const nextQuizUnlockAt = useMemo(() => {
-    if (!latestQuizAttempt?.submittedAt) return null
-    return new Date(latestQuizAttempt.submittedAt).getTime() + QUIZ_COOLDOWN_MS
-  }, [latestQuizAttempt?.submittedAt])
+  const quizEligibility = useMemo(() => getQuizEligibility({
+    latestQuizAttempt,
+    now: Date.now()
+  }), [latestQuizAttempt])
 
-  const canTakeQuizAgain = !nextQuizUnlockAt || Date.now() >= nextQuizUnlockAt
+  const nextQuizUnlockAt = quizEligibility.unlockAt || null
+  const canTakeQuizAgain = quizEligibility.canTakeQuiz
 
-  const [timeLeft, setTimeLeft] = useState(() => nextQuizUnlockAt ? Math.max(nextQuizUnlockAt - Date.now(), 0) : 0)
+  const [timeLeft, setTimeLeft] = useState(() => quizEligibility.timeLeftMs || 0)
 
   useEffect(() => {
     if (!nextQuizUnlockAt) return
 
     const updateCountdown = () => {
-      setTimeLeft(Math.max(nextQuizUnlockAt - Date.now(), 0))
+      setTimeLeft(Math.max((nextQuizUnlockAt || Date.now()) - Date.now(), 0))
     }
 
     updateCountdown()
@@ -268,6 +268,28 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
       'يجب تسجيل الدخول أولاً',
       'لا يمكنك بدء اختبار Detroit State إلا بعد تسجيل الدخول     .',
       <button type="button" className="quiz-primary-btn" onClick={onLogin}>تسجيل الدخول</button>
+    )
+  }
+
+  if (latestQuizAttempt?.passed === true) {
+    return renderHeroShell(
+      'أنت نجحت في الاختبار الإلكتروني',
+      'تمت الموافقة على نجاحك في الاختبار، ولا يمكنك الدخول مرة أخرى حتى يتم سحب الرتبة من قبل الإدارة إذا لزم الأمر.',
+      <div style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: '260px',
+        minHeight: '48px',
+        borderRadius: '14px',
+        background: 'rgba(40, 255, 150, 0.08)',
+        border: '1px solid rgba(40, 255, 150, 0.25)',
+        color: '#dfffe9',
+        fontWeight: 800,
+        padding: '0.8rem 1rem'
+      }}>
+        نجحت في الاختبار
+      </div>
     )
   }
 
