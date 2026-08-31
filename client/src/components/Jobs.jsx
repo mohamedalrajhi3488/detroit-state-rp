@@ -75,13 +75,13 @@ export default function Jobs() {
       <div className="promo-box">
         <span className="promo-badge">
           <span className="promo-dot" />
-          THE ROYAL
+          Detroit RP
         </span>
 
-        <h2 className="promo-title">مكانك محفوظ بيننا</h2>
+        <h2 className="promo-title"> اكتسب قصتك ، اصنع أثرك</h2>
 
         <p className="promo-description">
-          انضم الآن لأكبر مجتمع عربي في فايف إم. فعاليات يومية، مسابقات، وصداقات تدوم.
+          في مدينة ديترويت، كل قرار له تأثير، وكل شخصية لها طريقها , ابدأ من الصفر، كوّن علاقاتك، واصنع اسمك ومكانك داخل المدينة.
         </p>
 
         <div className="promo-numbers">

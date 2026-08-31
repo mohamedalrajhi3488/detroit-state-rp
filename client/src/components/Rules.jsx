@@ -26,9 +26,9 @@ export default function Rules() {
   return (
     <section id="rules" className="section-block stats-section">
       <div className="section-header center-header small-header">
-        <span className="eyebrow">النظام يعمل</span>
-        <h2>مميزات النظام</h2>
-        <p>تقنيات متطورة تضمن لك أفضل تجربة واقعية.</p>
+        <span className="eyebrow">Detroit System</span>
+        <h2>مميزات السيرفر</h2>
+        <p>تعرف على مميزات سيرفر ديترويت</p>
       </div>
 
       <div className="feature-list system-list">

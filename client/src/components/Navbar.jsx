@@ -70,7 +70,7 @@ export default function Navbar({
           </span>
           <span className="brand-copy">
             <span className="brand-name">{settings.siteName || 'DETROIT STATE'}</span>
-            <span className="brand-tag">{settings.title || 'Royal Community'}</span>
+            <span className="brand-tag">{settings.title || 'RP Community'}</span>
           </span>
         </button>
 

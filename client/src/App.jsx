@@ -88,7 +88,7 @@ const defaultSettings = {
   siteName: 'DETROIT STATE',
   discordLink: 'https://discord.gg/DSRP',
   storeLink: 'https://detroit-state-rp.tebex.io/',
-  title: 'Royal Community',
+  title: 'RP Community',
   footerLogo: '/img/DS.webp',
   footerTitle: 'DETROIT STATE',
   footerDescription: 'مجتمعنا هو مكان للعب والمرح والتفاعل مع المجتمع، حيث نلتقي للعب، والتنافس، وتبادل الخبرات داخل بيئة نظيفة واحترافية.',
