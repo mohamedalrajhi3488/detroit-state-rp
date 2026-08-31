@@ -294,9 +294,13 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
   }
 
   if (!canTakeQuizAgain && nextQuizUnlockAt) {
+    const isFailedAttempt = latestQuizAttempt && latestQuizAttempt.passed === false
+
     return renderHeroShell(
-      'تم إكمال الاختبار',
-      `لا يمكنك الدخول إلى الاختبار مرة أخرى إلا بعد ${formatTimeLeft(timeLeft)}.`,
+      isFailedAttempt ? 'لم تنجح في الاختبار' : 'تم إكمال الاختبار',
+      isFailedAttempt
+        ? `لم تصل إلى الحد الأدنى للنجاح في هذه المحاولة. يمكنك إعادة الاختبار بعد ${formatTimeLeft(timeLeft)}.`
+        : `لا يمكنك الدخول إلى الاختبار مرة أخرى إلا بعد ${formatTimeLeft(timeLeft)}.`,
       <div style={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -304,9 +308,9 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
         minWidth: '260px',
         minHeight: '48px',
         borderRadius: '14px',
-        background: 'rgba(157, 77, 255, 0.08)',
-        border: '1px solid rgba(157, 77, 255, 0.25)',
-        color: '#e9d7ff',
+        background: isFailedAttempt ? 'rgba(255, 107, 107, 0.08)' : 'rgba(157, 77, 255, 0.08)',
+        border: isFailedAttempt ? '1px solid rgba(255, 107, 107, 0.25)' : '1px solid rgba(157, 77, 255, 0.25)',
+        color: isFailedAttempt ? '#ffd6d6' : '#e9d7ff',
         fontWeight: 800,
         padding: '0.8rem 1rem'
       }}>
