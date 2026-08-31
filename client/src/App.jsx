@@ -1509,10 +1509,6 @@ export default function App() {
                 <span>حالة الاختبار</span>
                 <strong>{accountQuizStatus}</strong>
               </div>
-              <div className="account-meta-row">
-                <span>حالة الحساب</span>
-                <strong>{accountStatus}</strong>
-              </div>
             </div>
 
             <div className="account-actions">
