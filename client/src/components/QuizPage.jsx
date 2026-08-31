@@ -237,10 +237,10 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
             }}
           />
 
-          <div className="faq-hero-content" style={{ gap: '12px' }}>
+          <div className="faq-hero-content" style={{ gap: '18px' }}>
             <span className="faq-eyebrow">الاختبار الإلكتروني</span>
-            <h1 style={{ margin: 0 }}>{title}</h1>
-            <p style={{ margin: 0, marginTop: '0.2rem' }}>{message}</p>
+            <h1 style={{ margin: 0, lineHeight: 1.1, display: 'block' }}>{title}</h1>
+            <p style={{ margin: 0, marginTop: '0.8rem', lineHeight: 1.7, display: 'block' }}>{message}</p>
             {membershipError && (
               <div style={{
                 background: 'rgba(255, 86, 86, 0.12)',
