@@ -1910,6 +1910,9 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                       </div>
                       <div className="row-actions">
                         <button type="button" className="mini-btn" onClick={() => setExpandedResultId(expandedResultId === result.id ? null : result.id)}>تفاصيل</button>
+                        {result.cheatAttempt && (
+                          <span style={{ color: '#ffd6d6', fontWeight: 700, fontSize: '0.78rem' }}>حاول الغش</span>
+                        )}
                         {(result.passed || result.reviewed || result.roleGranted) && (currentUserRole === 'Owner' || currentUserRole === 'Admin' || currentUserRole === 'Mod') && (
                           <>
                             <button type="button" className="mini-btn primary" onClick={() => awardQuizRole(result)} disabled={Boolean(result.reviewed || result.roleGranted)}>
@@ -1929,6 +1932,9 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                     {expandedResultId === result.id && (
                       <div style={{ marginTop: '0.75rem' }}>
                         <p><strong>تاريخ الإرسال:</strong> {formatQuizResultDate(result.submittedAt || Date.now())}</p>
+                        {result.cheatAttempt && (
+                          <p style={{ margin: '0.25rem 0', color: '#ffd6d6', fontWeight: 700 }}>ملاحظة: هذا الشخص حاول الغش أو ترك الاختبار قبل الانتهاء.</p>
+                        )}
                         <div style={{ display: 'grid', gap: '0.75rem' }}>
                           {(quizQuestions || []).map((question, index) => {
                             const answerIndex = Number(result.answers?.[question.id])

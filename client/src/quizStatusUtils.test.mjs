@@ -1,7 +1,14 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { getAccountQuizLabel, getQuizEligibility, resolveQuizTimeoutMinutes, DEFAULT_QUIZ_TIMEOUT_MINUTES } from './quizStatusUtils.mjs'
+import { getAccountQuizLabel, getQuizEligibility, resolveQuizTimeoutMinutes, DEFAULT_QUIZ_TIMEOUT_MINUTES, shouldTreatQuizExitAsAbandon } from './quizStatusUtils.mjs'
+
+test('minimizing or switching tabs is not treated as quiz abandonment', () => {
+  assert.equal(shouldTreatQuizExitAsAbandon({ eventName: 'visibilitychange' }), false)
+  assert.equal(shouldTreatQuizExitAsAbandon({ eventName: 'blur' }), false)
+  assert.equal(shouldTreatQuizExitAsAbandon({ eventName: 'pagehide' }), true)
+  assert.equal(shouldTreatQuizExitAsAbandon({ eventName: 'beforeunload' }), true)
+})
 
 test('passed attempts block the quiz permanently and are labeled as successful', () => {
   const eligibility = getQuizEligibility({

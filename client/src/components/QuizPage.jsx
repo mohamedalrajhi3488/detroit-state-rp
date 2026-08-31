@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { getQuizEligibility, QUIZ_COOLDOWN_MS, resolveQuizTimeoutMinutes } from '../quizStatusUtils.mjs'
+import { getQuizEligibility, QUIZ_COOLDOWN_MS, resolveQuizTimeoutMinutes, shouldTreatQuizExitAsAbandon } from '../quizStatusUtils.mjs'
 
 const buildScoreSummary = (questions, answers = {}) => {
   let correct = 0
@@ -27,6 +27,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
   const [timeRemaining, setTimeRemaining] = useState(() => resolveQuizTimeoutMinutes({ quizTimeoutMinutes }))
   const [timedOut, setTimedOut] = useState(false)
   const timerRef = useRef(null)
+  const sessionStartAtRef = useRef(null)
   const failSubmissionRef = useRef(false)
   const failMarkerKey = `quiz-failed-${loggedUser?.id || 'guest'}`
 
@@ -51,7 +52,9 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
       passed: false,
       submittedAt: new Date().toISOString(),
       timedOut: reason === 'timeout',
-      abandoned: reason !== 'timeout'
+      abandoned: reason !== 'timeout',
+      reason: reason === 'timeout' ? 'timeout' : 'cheat_attempt',
+      cheatAttempt: reason !== 'timeout'
     }
 
     failSubmissionRef.current = true
@@ -108,6 +111,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
   const passRatio = 0.7
   const requiredCorrectAnswers = Math.ceil(totalQuestions * passRatio)
   const requiredPercentage = Math.ceil(passRatio * 100)
+  const configuredQuizMinutes = Number.isFinite(Number(quizTimeoutMinutes)) && Number(quizTimeoutMinutes) > 0 ? Number(quizTimeoutMinutes) : 5
 
   const completion = useMemo(() => {
     const answered = Object.keys(answers).filter((key) => answers[key] !== undefined && answers[key] !== null && answers[key] !== '').length
@@ -186,11 +190,13 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     if (!started || submitted || timedOut || !isLoggedIn) return
 
     const timeoutMs = resolveQuizTimeoutMinutes({ quizTimeoutMinutes })
+    sessionStartAtRef.current = Date.now()
     setTimeRemaining(timeoutMs)
 
-    const startedAt = Date.now()
     const tick = () => {
-      const elapsed = Date.now() - startedAt
+      if (!sessionStartAtRef.current) return
+
+      const elapsed = Date.now() - sessionStartAtRef.current
       const remaining = Math.max(0, timeoutMs - elapsed)
       setTimeRemaining(remaining)
 
@@ -205,35 +211,38 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
         window.clearInterval(timerRef.current)
       }
     }
-  }, [started, submitted, timedOut, isLoggedIn, loggedUser?.id, quizTimeoutMinutes, answers, safeQuestions, failMarkerKey, onSubmitResult])
+  }, [started, submitted, timedOut, isLoggedIn, loggedUser?.id, quizTimeoutMinutes])
 
   useEffect(() => {
     if (!started || submitted || timedOut) return
 
     const handleBeforeUnload = () => {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && !failSubmissionRef.current) {
         localStorage.setItem(failMarkerKey, '1')
       }
     }
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden' && started && !submitted && !timedOut) {
+      if (shouldTreatQuizExitAsAbandon({ eventName: 'visibilitychange', visibilityState: document.visibilityState })) {
         localStorage.setItem(failMarkerKey, '1')
       }
     }
 
     const handleQuizLeave = () => {
-      recordQuizFailure({ reason: 'abandon' })
+      if (shouldTreatQuizExitAsAbandon({ eventName: 'pagehide' })) {
+        recordQuizFailure({ reason: 'abandon' })
+      }
     }
 
     window.addEventListener('beforeunload', handleBeforeUnload)
+    window.addEventListener('pagehide', handleQuizLeave)
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => {
-      handleQuizLeave()
       window.removeEventListener('beforeunload', handleBeforeUnload)
+      window.removeEventListener('pagehide', handleQuizLeave)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [started, submitted, timedOut, loggedUser?.id, failMarkerKey, answers, safeQuestions])
+  }, [started, submitted, timedOut, loggedUser?.id, failMarkerKey])
 
   useEffect(() => {
     if (!loggedUser?.id) return
@@ -246,6 +255,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
 
   const handleStartQuiz = () => {
     failSubmissionRef.current = false
+    sessionStartAtRef.current = Date.now()
     if (loggedUser?.id) {
       localStorage.removeItem(failMarkerKey)
     }
@@ -254,6 +264,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     setSubmitted(false)
     setLocalResult(null)
     setAnswers({})
+    setTimeRemaining(resolveQuizTimeoutMinutes({ quizTimeoutMinutes }))
   }
 
   const handleVerifyMembership = async () => {
@@ -331,6 +342,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
       localStorage.removeItem(failMarkerKey)
     }
     failSubmissionRef.current = false
+    sessionStartAtRef.current = null
 
     let response = null
     if (typeof onSubmitResult === 'function') {
@@ -495,6 +507,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
             <div className="quiz-intro-meta">
               <span>{safeQuestions.length} أسئلة</span>
               <span>الحد الأدنى للنجاح: {requiredPercentage}%</span>
+              <span>الوقت المحدد: {configuredQuizMinutes} دقيقة</span>
             </div>
             <button type="button" className="quiz-primary-btn" onClick={handleStartQuiz}>ابدأ الاختبار</button>
           </div>

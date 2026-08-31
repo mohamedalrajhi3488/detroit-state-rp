@@ -11,6 +11,18 @@ export const resolveQuizTimeoutMinutes = ({ quizTimeoutMinutes, fallbackMinutes 
   return numericValue * 60 * 1000
 }
 
+export const shouldTreatQuizExitAsAbandon = ({ eventName, visibilityState } = {}) => {
+  if (!eventName) return false
+
+  const normalizedEvent = String(eventName).toLowerCase()
+
+  if (normalizedEvent === 'visibilitychange') {
+    return visibilityState === 'hidden' && false
+  }
+
+  return ['beforeunload', 'pagehide'].includes(normalizedEvent)
+}
+
 export const getAccountQuizLabel = (result) => {
   if (!result) return 'لم يبدأ الاختبار'
   if (result.passed === true) return 'نجح'
