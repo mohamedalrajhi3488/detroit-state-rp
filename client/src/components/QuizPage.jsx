@@ -268,6 +268,9 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     window.addEventListener('pagehide', handleQuizLeave)
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => {
+      if (!failSubmissionRef.current && !submitted && !timedOut && started) {
+        recordQuizFailure({ reason: 'abandon', customAnswers: answersRef.current })
+      }
       window.removeEventListener('beforeunload', handleBeforeUnload)
       window.removeEventListener('pagehide', handleQuizLeave)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
