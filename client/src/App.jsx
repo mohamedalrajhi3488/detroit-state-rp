@@ -1420,6 +1420,12 @@ export default function App() {
       return 'غير مفعل'
     })()
 
+    const accountQuizStatus = (() => {
+      if (!latestAccountQuizResult) return 'لم يبدأ الاختبار'
+      if (latestAccountQuizResult.passed === true) return 'نجح'
+      return 'لم ينجح'
+    })()
+
     return (
       <div className="app-shell">
         <Navbar
@@ -1498,6 +1504,10 @@ export default function App() {
               <div className="account-meta-row">
                 <span>نوع الحساب</span>
                 <strong>{accountRole}</strong>
+              </div>
+              <div className="account-meta-row">
+                <span>حالة الاختبار</span>
+                <strong>{accountQuizStatus}</strong>
               </div>
               <div className="account-meta-row">
                 <span>حالة الحساب</span>
