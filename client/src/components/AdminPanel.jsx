@@ -465,6 +465,10 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   const deleteQuizResult = (resultId) => {
     const result = (quizResults || []).find((item) => String(item.id) === String(resultId))
     const nextResults = (quizResults || []).filter((item) => String(item.id) !== String(resultId))
+    const targetUserId = result?.discordId ? String(result.discordId) : null
+    if (targetUserId) {
+      localStorage.removeItem(`quiz-failed-${targetUserId}`)
+    }
     setQuizResults(nextResults)
     commitData(pages, users, creators, news, settings, shopProducts, staff, faqGroups, quizQuestions, nextResults)
     addAdminActivity('حذف نتيجة اختبار', `المستخدم ${user?.name || user?.username || 'Admin'} قام بحذف نتيجة الاختبار: ${result?.userName || 'غير معروف'}`, 'pink')

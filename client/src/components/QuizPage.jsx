@@ -27,7 +27,43 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
   const [timeRemaining, setTimeRemaining] = useState(() => resolveQuizTimeoutMinutes({ quizTimeoutMinutes }))
   const [timedOut, setTimedOut] = useState(false)
   const timerRef = useRef(null)
+  const failSubmissionRef = useRef(false)
   const failMarkerKey = `quiz-failed-${loggedUser?.id || 'guest'}`
+
+  const formatQuizTimer = (ms) => {
+    const totalSeconds = Math.max(0, Math.ceil(ms / 1000))
+    const minutes = Math.floor(totalSeconds / 60)
+    const seconds = totalSeconds % 60
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  }
+
+  const recordQuizFailure = (options = {}) => {
+    const { reason = 'abandon', customAnswers = answers } = options
+    if (!loggedUser?.id || submitted || timedOut || failSubmissionRef.current) return
+
+    const failureResult = {
+      discordId: loggedUser.id,
+      userName: loggedUser.name || loggedUser.username || 'مستخدم',
+      avatar: loggedUser.avatar || null,
+      answers: customAnswers,
+      score: buildScoreSummary(safeQuestions, customAnswers),
+      total: safeQuestions.length,
+      passed: false,
+      submittedAt: new Date().toISOString(),
+      timedOut: reason === 'timeout',
+      abandoned: reason !== 'timeout'
+    }
+
+    failSubmissionRef.current = true
+    setTimedOut(reason === 'timeout')
+    setSubmitted(true)
+    setLocalResult(failureResult)
+    localStorage.setItem(failMarkerKey, '1')
+
+    if (typeof onSubmitResult === 'function') {
+      onSubmitResult(failureResult)
+    }
+  }
 
   useEffect(() => {
     if (!loggedUser?.id) {
@@ -159,27 +195,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
       setTimeRemaining(remaining)
 
       if (remaining <= 0) {
-        const timeoutResult = {
-          discordId: loggedUser.id,
-          userName: loggedUser.name || loggedUser.username || 'مستخدم',
-          avatar: loggedUser.avatar || null,
-          answers,
-          score: buildScoreSummary(safeQuestions, answers),
-          total: safeQuestions.length,
-          passed: false,
-          submittedAt: new Date().toISOString(),
-          timedOut: true,
-          abandoned: true
-        }
-
-        setTimedOut(true)
-        setSubmitted(true)
-        setLocalResult(timeoutResult)
-        localStorage.setItem(failMarkerKey, '1')
-
-        if (typeof onSubmitResult === 'function') {
-          onSubmitResult(timeoutResult)
-        }
+        recordQuizFailure({ reason: 'timeout' })
       }
     }
 
@@ -196,54 +212,40 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
 
     const handleBeforeUnload = () => {
       if (typeof window !== 'undefined') {
-        localStorage.setItem(`quiz-failed-${loggedUser?.id || 'guest'}`, '1')
+        localStorage.setItem(failMarkerKey, '1')
       }
     }
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden' && started && !submitted && !timedOut) {
-        localStorage.setItem(`quiz-failed-${loggedUser?.id || 'guest'}`, '1')
+        localStorage.setItem(failMarkerKey, '1')
       }
+    }
+
+    const handleQuizLeave = () => {
+      recordQuizFailure({ reason: 'abandon' })
     }
 
     window.addEventListener('beforeunload', handleBeforeUnload)
     document.addEventListener('visibilitychange', handleVisibilityChange)
-
     return () => {
+      handleQuizLeave()
       window.removeEventListener('beforeunload', handleBeforeUnload)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [started, submitted, timedOut, loggedUser?.id])
+  }, [started, submitted, timedOut, loggedUser?.id, failMarkerKey, answers, safeQuestions])
 
   useEffect(() => {
     if (!loggedUser?.id) return
 
     const failMarker = localStorage.getItem(failMarkerKey)
-    if (failMarker === '1' && !submitted && !timedOut) {
-      const abandonResult = {
-        discordId: loggedUser.id,
-        userName: loggedUser.name || loggedUser.username || 'مستخدم',
-        avatar: loggedUser.avatar || null,
-        answers,
-        score: buildScoreSummary(safeQuestions, answers),
-        total: safeQuestions.length,
-        passed: false,
-        submittedAt: new Date().toISOString(),
-        timedOut: true,
-        abandoned: true
-      }
-
-      setTimedOut(true)
-      setSubmitted(true)
-      setLocalResult(abandonResult)
-
-      if (typeof onSubmitResult === 'function') {
-        onSubmitResult(abandonResult)
-      }
+    if (failMarker === '1' && !submitted && !timedOut && !failSubmissionRef.current) {
+      recordQuizFailure({ reason: 'abandon' })
     }
   }, [loggedUser?.id, failMarkerKey, submitted, timedOut, answers, safeQuestions, onSubmitResult])
 
   const handleStartQuiz = () => {
+    failSubmissionRef.current = false
     if (loggedUser?.id) {
       localStorage.removeItem(failMarkerKey)
     }
@@ -325,7 +327,10 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
       timedOut: false
     }
 
-    localStorage.removeItem(`quiz-failed-${loggedUser?.id || 'guest'}`)
+    if (loggedUser?.id) {
+      localStorage.removeItem(failMarkerKey)
+    }
+    failSubmissionRef.current = false
 
     let response = null
     if (typeof onSubmitResult === 'function') {
@@ -509,7 +514,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <div className="quiz-progress-pill">{completion}%</div>
             <div className="quiz-progress-pill" style={{ background: 'rgba(255, 107, 107, 0.12)', borderColor: 'rgba(255, 107, 107, 0.24)', color: '#ffd6d6' }}>
-              {Math.ceil(timeRemaining / 1000)}s
+              {formatQuizTimer(timeRemaining)}
             </div>
           </div>
         </div>
