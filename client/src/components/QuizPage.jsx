@@ -326,7 +326,6 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
   }
 
   if (submitted && localResult) {
-    const successText = localResult.passed ? 'تم اجتياز الاختبار بنجاح' : 'تم إنهاء الاختبار'
     const percentage = localResult.total ? Math.round((localResult.score / localResult.total) * 100) : 0
 
     return (
@@ -335,12 +334,12 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
           <div className="quiz-result-icon">
             <img src="/img/DS.webp" alt="Detroit State" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
           </div>
-          <h1>{successText}</h1>
+          <h1>{localResult.passed ? 'تم اجتياز الاختبار بنجاح' : 'لم تنجح في الاختبار'}</h1>
           <p>نسبتك: {percentage}%</p>
           {localResult.passed ? (
-            <p className="quiz-result-note">تم إعطائك رتبة اجتاز الاختبار الإلكتروني في Discord.</p>
+            <p className="quiz-result-note">مبروك، لقد اجتزت اختبار Detroit State الإلكتروني بنجاح، وتم تفعيل رتبة النجاح الخاصة بك في Discord. يمكنك الآن متابعة الأنشطة داخل المجتمع وفقًا لسياساتنا.</p>
           ) : (
-            <p className="quiz-result-note">يمكنك إعادة المحاولة الأسبوع المقبل وبتوفيق لك.</p>
+            <p className="quiz-result-note">نأسف، لم تصل إلى الحد الأدنى للنجاح في الاختبار هذا الوقت. يمكنك إعادة المحاولة بعد 7 أيام، مع الاستعداد لمراجعة المحتوى المقدم قبل المحاولة التالية.</p>
           )}
         </div>
       </section>
