@@ -462,12 +462,28 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     }
   }
 
+  const clearQuizFailureForUser = (userId) => {
+    if (!userId || typeof window === 'undefined') return
+
+    const normalizedUserId = String(userId)
+    const keysToRemove = []
+
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index)
+      if (key && key.startsWith('quiz-failed-') && (key === `quiz-failed-${normalizedUserId}` || key.endsWith(`-${normalizedUserId}`))) {
+        keysToRemove.push(key)
+      }
+    }
+
+    keysToRemove.forEach((key) => localStorage.removeItem(key))
+  }
+
   const deleteQuizResult = (resultId) => {
     const result = (quizResults || []).find((item) => String(item.id) === String(resultId))
     const nextResults = (quizResults || []).filter((item) => String(item.id) !== String(resultId))
     const targetUserId = result?.discordId ? String(result.discordId) : null
     if (targetUserId) {
-      localStorage.removeItem(`quiz-failed-${targetUserId}`)
+      clearQuizFailureForUser(targetUserId)
     }
     setQuizResults(nextResults)
     commitData(pages, users, creators, news, settings, shopProducts, staff, faqGroups, quizQuestions, nextResults)

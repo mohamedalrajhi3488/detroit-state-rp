@@ -283,6 +283,11 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     const failMarkerRaw = localStorage.getItem(failMarkerKey)
     if (!failMarkerRaw) return
 
+    if (!latestQuizAttempt && !submitted && !timedOut && !failSubmissionRef.current) {
+      clearQuizFailureMarker(loggedUser.id)
+      return
+    }
+
     try {
       const failMarker = JSON.parse(failMarkerRaw)
       if (!failMarker || !failMarker.recorded) {
@@ -305,14 +310,26 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
         recordQuizFailure({ reason: 'abandon' })
       }
     }
-  }, [loggedUser?.id, failMarkerKey, submitted, timedOut, answers, safeQuestions, onSubmitResult])
+  }, [loggedUser?.id, failMarkerKey, submitted, timedOut, answers, safeQuestions, onSubmitResult, latestQuizAttempt])
+
+  const clearQuizFailureMarker = (userId = loggedUser?.id) => {
+    if (typeof window === 'undefined' || !userId) return
+
+    const prefixedKey = `quiz-failed-${userId}`
+    localStorage.removeItem(prefixedKey)
+
+    for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+      const key = localStorage.key(index)
+      if (key && key.startsWith('quiz-failed-') && key.endsWith(`-${userId}`)) {
+        localStorage.removeItem(key)
+      }
+    }
+  }
 
   const handleStartQuiz = () => {
     failSubmissionRef.current = false
     sessionStartAtRef.current = Date.now()
-    if (loggedUser?.id) {
-      localStorage.removeItem(failMarkerKey)
-    }
+    clearQuizFailureMarker(loggedUser?.id)
     setStarted(true)
     setTimedOut(false)
     setSubmitted(false)
