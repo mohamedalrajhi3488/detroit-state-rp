@@ -780,13 +780,17 @@ export default function App() {
 
         const resolvedRole = matchedStoredUser?.role || storedUser?.role || 'Discord User'
 
+        const roleIds = Array.isArray(data.roles) ? data.roles.map((roleId) => String(roleId)) : Array.isArray(data.roleIds) ? data.roleIds.map((roleId) => String(roleId)) : []
+
         const resolvedUser = {
           id: data.id,
           name: data.username || data.name || 'User',
           email: data.email || `${(data.username || 'user').toLowerCase()}@discord`,
           avatar: buildDiscordAvatar(data),
           role: resolvedRole,
-          status: liveGuildStatus
+          status: liveGuildStatus,
+          roles: roleIds,
+          roleIds
         }
 
         setLoggedUser(resolvedUser)
@@ -1396,10 +1400,16 @@ export default function App() {
 
     const ACTIVE_ACCOUNT_ROLE_ID = '1520224831063195683'
     const INACTIVE_ACCOUNT_ROLE_ID = '1520224831063195682'
-    const detectedAccountRoleId = String(loggedUser?.roleId || loggedUser?.discordRoleId || loggedUser?.roleId || '').trim()
+    const detectedAccountRoleIds = Array.isArray(loggedUser?.roles)
+      ? loggedUser.roles.map((roleId) => String(roleId))
+      : Array.isArray(loggedUser?.roleIds)
+        ? loggedUser.roleIds.map((roleId) => String(roleId))
+        : []
+    const hasActiveAccountRole = detectedAccountRoleIds.includes(ACTIVE_ACCOUNT_ROLE_ID)
+    const hasInactiveAccountRole = detectedAccountRoleIds.includes(INACTIVE_ACCOUNT_ROLE_ID)
     const accountStatus = (() => {
-      if (detectedAccountRoleId === ACTIVE_ACCOUNT_ROLE_ID) return 'مفعل'
-      if (detectedAccountRoleId === INACTIVE_ACCOUNT_ROLE_ID) return 'غير مفعل'
+      if (hasActiveAccountRole) return 'مفعل'
+      if (hasInactiveAccountRole) return 'غير مفعل'
       if (latestAccountQuizResult?.passed === true) return 'مفعل'
       return 'غير مفعل'
     })()

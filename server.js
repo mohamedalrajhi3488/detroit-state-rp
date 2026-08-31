@@ -113,8 +113,27 @@ const createSignedUserToken = (user) => {
     email: user.email,
     status: user.status || 'offline',
     isMember: Boolean(user.isMember),
-    guilds: Array.isArray(user.guilds) ? user.guilds.map((guild) => String(guild)) : []
+    guilds: Array.isArray(user.guilds) ? user.guilds.map((guild) => String(guild)) : [],
+    roles: Array.isArray(user.roles) ? user.roles.map((roleId) => String(roleId)) : [],
+    roleIds: Array.isArray(user.roleIds) ? user.roleIds.map((roleId) => String(roleId)) : []
   }, JWT_SECRET, { expiresIn: '7d' })
+}
+
+const getGuildMemberRoles = async (userId) => {
+  if (!BOT_TOKEN || !TARGET_GUILD_ID) {
+    return []
+  }
+
+  try {
+    const memberResp = await axios.get(`https://discord.com/api/guilds/${TARGET_GUILD_ID}/members/${userId}`, {
+      headers: { Authorization: `Bot ${BOT_TOKEN}` }
+    })
+
+    const member = memberResp.data || {}
+    return Array.isArray(member.roles) ? member.roles.map((roleId) => String(roleId)) : []
+  } catch {
+    return []
+  }
 }
 
 const getGuildMembership = async (userId, fallbackMember = false, fallbackStatus = 'offline') => {
@@ -498,11 +517,14 @@ app.get('/auth/discord/callback', async (req, res) => {
       return res.redirect(inviteUrl);
     }
 
+    const memberRoles = Array.isArray(user.roles) ? user.roles.map((roleId) => String(roleId)) : []
     const signedUser = {
       ...user,
       status: guildStatus,
       isMember,
-      guilds: Array.isArray(user.guilds) ? user.guilds : (Array.isArray(user.guilds) ? user.guilds : [])
+      guilds: Array.isArray(user.guilds) ? user.guilds : [],
+      roles: memberRoles,
+      roleIds: memberRoles
     };
     if (REQUIRE_GUILD_MEMBERSHIP && !isMember && TARGET_GUILD_ID) {
       signedUser.status = 'not_in_guild';
@@ -532,7 +554,8 @@ app.get('/me', async (req, res) => {
     if (REQUIRE_GUILD_MEMBERSHIP && TARGET_GUILD_ID && BOT_TOKEN && user.id) {
       try {
         const liveStatus = await getGuildMembership(user.id, fallbackMember, user.status)
-        const refreshedUser = { ...user, status: liveStatus.status, isMember: liveStatus.member }
+        const memberRoles = await getGuildMemberRoles(user.id)
+        const refreshedUser = { ...user, status: liveStatus.status, isMember: liveStatus.member, roles: memberRoles, roleIds: memberRoles }
         const refreshedToken = createSignedUserToken(refreshedUser)
         res.cookie('sid', refreshedToken, getCookieOptions(req))
 
@@ -543,12 +566,16 @@ app.get('/me', async (req, res) => {
           avatar: refreshedUser.avatar,
           email: refreshedUser.email,
           status: refreshedUser.status || 'offline',
-          isMember: Boolean(refreshedUser.isMember)
+          isMember: Boolean(refreshedUser.isMember),
+          roles: memberRoles,
+          roleIds: memberRoles
         })
       } catch {
         // ignore live revalidation failure and return the trusted cached token
       }
     }
+
+    const memberRoles = Array.isArray(user.roles) ? user.roles.map((roleId) => String(roleId)) : Array.isArray(user.roleIds) ? user.roleIds.map((roleId) => String(roleId)) : []
 
     return res.json({
       id: user.id,
@@ -557,7 +584,9 @@ app.get('/me', async (req, res) => {
       avatar: user.avatar,
       email: user.email,
       status: user.status || 'offline',
-      isMember: Boolean(user.isMember)
+      isMember: Boolean(user.isMember),
+      roles: memberRoles,
+      roleIds: memberRoles
     });
   } catch {
     return res.status(401).json({ error: 'session_invalid' });
