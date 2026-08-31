@@ -273,8 +273,8 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
 
   if (latestQuizAttempt?.passed === true) {
     return renderHeroShell(
-      'أنت نجحت في الاختبار الإلكتروني',
-      'تمت الموافقة على نجاحك في الاختبار، ولا يمكنك الدخول مرة أخرى حتى يتم سحب الرتبة من قبل الإدارة إذا لزم الأمر.',
+      'تم إكمال الاختبار الأكتروني.',
+      'تمت الموافقة على نجاحك في الاختبار، ولا يمكنك الدخول للأختبار مرة أخرى حتى يتم سحب الرتبة من قبل الإدارة إذا لزم الأمر.',
       <div style={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -339,7 +339,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
           {localResult.passed ? (
             <p className="quiz-result-note">مبروك، لقد اجتزت اختبار Detroit State الإلكتروني بنجاح، وتم تفعيل رتبة النجاح الخاصة بك في Discord. يمكنك الآن متابعة الأنشطة داخل المجتمع وفقًا لسياساتنا.</p>
           ) : (
-            <p className="quiz-result-note">نأسف، لم تصل إلى الحد الأدنى للنجاح في الاختبار هذا الوقت. يمكنك إعادة المحاولة بعد 7 أيام، مع الاستعداد لمراجعة المحتوى المقدم قبل المحاولة التالية.</p>
+            <p className="quiz-result-note">لم تنجح في الاختبار، يمكنك إعادة المحاولة بعد 7 أيام، ويُنصح بمراجعة القوانين بشكل جيد قبل المحاولة التالية.</p>
           )}
         </div>
       </section>
