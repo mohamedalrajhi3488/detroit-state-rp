@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { getAccountQuizLabel, getQuizEligibility } from './quizStatusUtils.mjs'
+import { getAccountQuizLabel, getQuizEligibility, resolveQuizTimeoutMinutes, DEFAULT_QUIZ_TIMEOUT_MINUTES } from './quizStatusUtils.mjs'
 
 test('passed attempts block the quiz permanently and are labeled as successful', () => {
   const eligibility = getQuizEligibility({
@@ -23,4 +23,11 @@ test('failed attempts allow a retry only after seven full days and are labeled a
   assert.equal(eligibility.canTakeQuiz, true)
   assert.equal(eligibility.reason, 'ready')
   assert.equal(getAccountQuizLabel({ passed: false }), 'لم ينجح')
+})
+
+test('quiz timeout defaults to five minutes and supports admin overrides', () => {
+  assert.equal(DEFAULT_QUIZ_TIMEOUT_MINUTES, 5)
+  assert.equal(resolveQuizTimeoutMinutes({ quizTimeoutMinutes: 10 }), 10 * 60 * 1000)
+  assert.equal(resolveQuizTimeoutMinutes({}), 5 * 60 * 1000)
+  assert.equal(resolveQuizTimeoutMinutes({ quizTimeoutMinutes: -2 }), 5 * 60 * 1000)
 })

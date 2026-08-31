@@ -93,6 +93,7 @@ const defaultSettings = {
   footerTitle: 'DETROIT STATE',
   footerDescription: 'مجتمعنا هو مكان للعب والمرح والتفاعل مع المجتمع، حيث نلتقي للعب، والتنافس، وتبادل الخبرات داخل بيئة نظيفة واحترافية.',
   footerCopyright: '© 2026 Detroit State. جميع الحقوق محفوظة. صنع بواسطة Dreko8u',
+  quizTimeoutMinutes: 5,
 
   footerQuickLinks: [
     { label: 'القوانين العامة', href: '#/rules' },
@@ -1330,6 +1331,7 @@ export default function App() {
         onSubmitResult={handleQuizSubmit}
         onLogin={handleLogin}
         quizResults={siteData.quizResults || []}
+        quizTimeoutMinutes={siteData.settings?.quizTimeoutMinutes ?? 5}
       />
     )
     if (page.type === 'tournaments') return <section className="dynamic-page-shell"><div className="dynamic-page-card"><span className="dynamic-page-badge">{page.name}</span><h2>{page.name}</h2><p>{page.description}</p><div className="dynamic-page-grid"><article><strong>فعاليات قادمة</strong><p>بطولات يومية وأسبوعية مع جوائز ومزايا خاصة.</p></article><article><strong>التسجيل</strong><p>يمكن للعضو التقديم عبر الديسكورد أو من الموقع مباشرة.</p></article></div></div></section>

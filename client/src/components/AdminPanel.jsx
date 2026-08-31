@@ -231,6 +231,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   const [faqGroupForm, setFaqGroupForm] = useState({ title: '' })
   const [quizQuestions, setQuizQuestions] = useState(Array.isArray(data?.quizQuestions) && data.quizQuestions.length ? data.quizQuestions : defaultQuizQuestions)
   const [quizDraftQuestions, setQuizDraftQuestions] = useState(Array.isArray(data?.quizQuestions) && data.quizQuestions.length ? data.quizQuestions : defaultQuizQuestions)
+  const [quizTimeoutMinutesDraft, setQuizTimeoutMinutesDraft] = useState(Number(settings?.quizTimeoutMinutes || 5))
   const [quizResults, setQuizResults] = useState(Array.isArray(data?.quizResults) ? data.quizResults : [])
   const [expandedResultId, setExpandedResultId] = useState(null)
 
@@ -264,6 +265,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     setNews(data?.news || [])
     setShopProducts(data?.products || [])
     setSettings(data?.settings || {})
+    setQuizTimeoutMinutesDraft(Number((data?.settings?.quizTimeoutMinutes ?? 5)))
     const nextFaqGroups = Array.isArray(data?.faqGroups) && data.faqGroups.length ? data.faqGroups : defaultFaqGroups
     setFaqGroups(nextFaqGroups)
     setFaqDraftGroups(nextFaqGroups)
@@ -393,8 +395,10 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   }), [users, pages, creators, dashboardStats.onlinePlayers])
 
   const saveQuizDraft = () => {
+    const nextSettings = { ...settings, quizTimeoutMinutes: Math.max(1, Number(quizTimeoutMinutesDraft) || 5) }
     setQuizQuestions(quizDraftQuestions)
-    commitData(pages, users, creators, news, settings, shopProducts, staff, faqGroups, quizDraftQuestions, quizResults)
+    setSettings(nextSettings)
+    commitData(pages, users, creators, news, nextSettings, shopProducts, staff, faqGroups, quizDraftQuestions, quizResults)
     addAdminActivity('تعديل أسئلة الاختبار', `المستخدم ${user?.name || user?.username || 'Admin'} قام بتعديل أسئلة الاختبار الإلكتروني.`, 'gold')
     notify('success', 'تم حفظ أسئلة الاختبار بنجاح.')
   }
@@ -1256,7 +1260,11 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
       footerDescription: formData.get('footerDescription') || 'مجتمعنا هو مكان للعب والمرح والتفاعل مع المجتمع، حيث نلتقي للعب، والتنافس، وتبادل الخبرات داخل بيئة نظيفة واحترافية.',
       footerCopyright: formData.get('footerCopyright') || `${formData.get('siteName') || 'Detroit State'} Community. All rights reserved 2026`,
       footerQuickLinks: parseFooterLinks(formData.get('footerQuickLinks')),
-      footerSocials: parseFooterSocials(formData.get('footerSocials'))
+      footerSocials: parseFooterSocials(formData.get('footerSocials')),
+      quizTimeoutMinutes: (() => {
+        const value = Number(formData.get('quizTimeoutMinutes'))
+        return Number.isFinite(value) && value > 0 ? value : (settings?.quizTimeoutMinutes || 5)
+      })()
     }
 
     commitData(pages, users, creators, news, nextSettings)
@@ -1766,6 +1774,19 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
             <div className="panel-title-row">
               <h3>إدارة اختبار Detroit State</h3>
               <button type="button" className="mini-btn primary" onClick={saveQuizDraft}>حفظ</button>
+            </div>
+
+            <div className="settings-grid" style={{ marginBottom: '1rem' }}>
+              <label>
+                <span>مدة الاختبار (دقائق)</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="60"
+                  value={quizTimeoutMinutesDraft}
+                  onChange={(event) => setQuizTimeoutMinutesDraft(Math.max(1, Number(event.target.value) || 1))}
+                />
+              </label>
             </div>
 
             <div className="faq-admin-groups">
@@ -2722,6 +2743,10 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
               <label>
                 <span>عنوان الصفحة</span>
                 <input name="title" defaultValue={settings.title || 'Royal Community'} type="text" />
+              </label>
+              <label>
+                <span>مدة الاختبار (دقائق)</span>
+                <input name="quizTimeoutMinutes" defaultValue={settings.quizTimeoutMinutes || 5} type="number" min="1" max="60" />
               </label>
 
               <label>

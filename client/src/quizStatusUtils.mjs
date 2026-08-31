@@ -1,4 +1,15 @@
+export const DEFAULT_QUIZ_TIMEOUT_MINUTES = 5
 export const QUIZ_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000
+
+export const resolveQuizTimeoutMinutes = ({ quizTimeoutMinutes, fallbackMinutes = DEFAULT_QUIZ_TIMEOUT_MINUTES } = {}) => {
+  const numericValue = Number(quizTimeoutMinutes)
+
+  if (!Number.isFinite(numericValue) || numericValue <= 0) {
+    return fallbackMinutes * 60 * 1000
+  }
+
+  return numericValue * 60 * 1000
+}
 
 export const getAccountQuizLabel = (result) => {
   if (!result) return 'لم يبدأ الاختبار'
@@ -34,4 +45,4 @@ export const getQuizEligibility = ({ latestQuizAttempt, now = Date.now() }) => {
   }
 }
 
-export default { getAccountQuizLabel, getQuizEligibility, QUIZ_COOLDOWN_MS }
+export default { getAccountQuizLabel, getQuizEligibility, QUIZ_COOLDOWN_MS, DEFAULT_QUIZ_TIMEOUT_MINUTES, resolveQuizTimeoutMinutes }
