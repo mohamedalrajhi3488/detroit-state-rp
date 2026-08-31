@@ -29,7 +29,12 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
   const timerRef = useRef(null)
   const sessionStartAtRef = useRef(null)
   const failSubmissionRef = useRef(false)
+  const answersRef = useRef(answers)
   const failMarkerKey = `quiz-failed-${loggedUser?.id || 'guest'}`
+
+  useEffect(() => {
+    answersRef.current = answers
+  }, [answers])
 
   const formatQuizTimer = (ms) => {
     const totalSeconds = Math.max(0, Math.ceil(ms / 1000))
@@ -234,7 +239,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
           timedOut: false,
           recorded: true,
           submittedAt: new Date().toISOString(),
-          answers
+          answers: answersRef.current
         }))
       }
     }
@@ -248,14 +253,14 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
           timedOut: false,
           recorded: true,
           submittedAt: new Date().toISOString(),
-          answers
+          answers: answersRef.current
         }))
       }
     }
 
     const handleQuizLeave = () => {
       if (shouldTreatQuizExitAsAbandon({ eventName: 'pagehide' })) {
-        recordQuizFailure({ reason: 'abandon' })
+        recordQuizFailure({ reason: 'abandon', customAnswers: answersRef.current })
       }
     }
 
@@ -263,14 +268,11 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     window.addEventListener('pagehide', handleQuizLeave)
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => {
-      if (started && !submitted && !timedOut && !failSubmissionRef.current) {
-        recordQuizFailure({ reason: 'abandon' })
-      }
       window.removeEventListener('beforeunload', handleBeforeUnload)
       window.removeEventListener('pagehide', handleQuizLeave)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [started, submitted, timedOut, loggedUser?.id, failMarkerKey, answers])
+  }, [started, submitted, timedOut, loggedUser?.id, failMarkerKey])
 
   useEffect(() => {
     if (!loggedUser?.id) return
