@@ -1,7 +1,15 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { getAccountQuizLabel, getQuizEligibility, resolveQuizTimeoutMinutes, DEFAULT_QUIZ_TIMEOUT_MINUTES, shouldTreatQuizExitAsAbandon } from './quizStatusUtils.mjs'
+import { getAccountQuizLabel, getQuizEligibility, resolveQuizTimeoutMinutes, DEFAULT_QUIZ_TIMEOUT_MINUTES, shouldTreatQuizExitAsAbandon, normalizeQuizFailureMeta } from './quizStatusUtils.mjs'
+
+test('quiz cheating metadata is preserved for admin review', () => {
+  const meta = normalizeQuizFailureMeta({ reason: 'cheat_attempt', cheatAttempt: true, abandoned: true })
+  assert.equal(meta.cheatAttempt, true)
+  assert.equal(meta.reason, 'cheat_attempt')
+  assert.equal(meta.abandoned, true)
+  assert.equal(normalizeQuizFailureMeta({ reason: 'timeout', timedOut: true }).timedOut, true)
+})
 
 test('minimizing or switching tabs is not treated as quiz abandonment', () => {
   assert.equal(shouldTreatQuizExitAsAbandon({ eventName: 'visibilitychange' }), false)

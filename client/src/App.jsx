@@ -1001,7 +1001,11 @@ export default function App() {
       submittedAt: result.submittedAt || new Date().toISOString(),
       roleId: resolvedRoleId,
       reviewed: Boolean(result.passed),
-      roleGranted: Boolean(result.passed)
+      roleGranted: Boolean(result.passed),
+      timedOut: Boolean(result.timedOut),
+      abandoned: Boolean(result.abandoned),
+      cheatAttempt: Boolean(result.cheatAttempt),
+      reason: result.reason || (result.cheatAttempt ? 'cheat_attempt' : (result.timedOut ? 'timeout' : 'completed'))
     }
 
     if (result.passed) {

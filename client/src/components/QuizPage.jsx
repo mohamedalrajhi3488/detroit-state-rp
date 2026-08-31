@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { getQuizEligibility, QUIZ_COOLDOWN_MS, resolveQuizTimeoutMinutes, shouldTreatQuizExitAsAbandon } from '../quizStatusUtils.mjs'
+import { getQuizEligibility, QUIZ_COOLDOWN_MS, resolveQuizTimeoutMinutes, shouldTreatQuizExitAsAbandon, normalizeQuizFailureMeta } from '../quizStatusUtils.mjs'
 
 const buildScoreSummary = (questions, answers = {}) => {
   let correct = 0
@@ -42,7 +42,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     const { reason = 'abandon', customAnswers = answers } = options
     if (!loggedUser?.id || submitted || timedOut || failSubmissionRef.current) return
 
-    const failureResult = {
+    const failureResult = normalizeQuizFailureMeta({
       discordId: loggedUser.id,
       userName: loggedUser.name || loggedUser.username || 'مستخدم',
       avatar: loggedUser.avatar || null,
@@ -55,13 +55,22 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
       abandoned: reason !== 'timeout',
       reason: reason === 'timeout' ? 'timeout' : 'cheat_attempt',
       cheatAttempt: reason !== 'timeout'
-    }
+    })
 
     failSubmissionRef.current = true
     setTimedOut(reason === 'timeout')
     setSubmitted(true)
     setLocalResult(failureResult)
-    localStorage.setItem(failMarkerKey, '1')
+    const failMarkerPayload = {
+      reason: failureResult.reason,
+      cheatAttempt: Boolean(failureResult.cheatAttempt),
+      abandoned: Boolean(failureResult.abandoned),
+      timedOut: Boolean(failureResult.timedOut),
+      recorded: true,
+      submittedAt: failureResult.submittedAt,
+      answers: customAnswers || {}
+    }
+    localStorage.setItem(failMarkerKey, JSON.stringify(failMarkerPayload))
 
     if (typeof onSubmitResult === 'function') {
       onSubmitResult(failureResult)
@@ -218,13 +227,29 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
 
     const handleBeforeUnload = () => {
       if (typeof window !== 'undefined' && !failSubmissionRef.current) {
-        localStorage.setItem(failMarkerKey, '1')
+        localStorage.setItem(failMarkerKey, JSON.stringify({
+          reason: 'cheat_attempt',
+          cheatAttempt: true,
+          abandoned: true,
+          timedOut: false,
+          recorded: true,
+          submittedAt: new Date().toISOString(),
+          answers
+        }))
       }
     }
 
     const handleVisibilityChange = () => {
       if (shouldTreatQuizExitAsAbandon({ eventName: 'visibilitychange', visibilityState: document.visibilityState })) {
-        localStorage.setItem(failMarkerKey, '1')
+        localStorage.setItem(failMarkerKey, JSON.stringify({
+          reason: 'cheat_attempt',
+          cheatAttempt: true,
+          abandoned: true,
+          timedOut: false,
+          recorded: true,
+          submittedAt: new Date().toISOString(),
+          answers
+        }))
       }
     }
 
@@ -238,18 +263,42 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     window.addEventListener('pagehide', handleQuizLeave)
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => {
+      if (started && !submitted && !timedOut && !failSubmissionRef.current) {
+        recordQuizFailure({ reason: 'abandon' })
+      }
       window.removeEventListener('beforeunload', handleBeforeUnload)
       window.removeEventListener('pagehide', handleQuizLeave)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [started, submitted, timedOut, loggedUser?.id, failMarkerKey])
+  }, [started, submitted, timedOut, loggedUser?.id, failMarkerKey, answers])
 
   useEffect(() => {
     if (!loggedUser?.id) return
 
-    const failMarker = localStorage.getItem(failMarkerKey)
-    if (failMarker === '1' && !submitted && !timedOut && !failSubmissionRef.current) {
-      recordQuizFailure({ reason: 'abandon' })
+    const failMarkerRaw = localStorage.getItem(failMarkerKey)
+    if (!failMarkerRaw) return
+
+    try {
+      const failMarker = JSON.parse(failMarkerRaw)
+      if (!failMarker || !failMarker.recorded) {
+        if (!submitted && !timedOut && !failSubmissionRef.current) {
+          recordQuizFailure({ reason: 'abandon' })
+        }
+        return
+      }
+
+      if (failMarker && !submitted && !timedOut && !failSubmissionRef.current) {
+        const normalizedFail = normalizeQuizFailureMeta(failMarker)
+        failSubmissionRef.current = true
+        setTimedOut(Boolean(normalizedFail.timedOut))
+        setSubmitted(true)
+        setLocalResult(normalizedFail)
+        return
+      }
+    } catch {
+      if (failMarkerRaw === '1' && !submitted && !timedOut && !failSubmissionRef.current) {
+        recordQuizFailure({ reason: 'abandon' })
+      }
     }
   }, [loggedUser?.id, failMarkerKey, submitted, timedOut, answers, safeQuestions, onSubmitResult])
 

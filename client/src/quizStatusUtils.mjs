@@ -17,10 +17,24 @@ export const shouldTreatQuizExitAsAbandon = ({ eventName, visibilityState } = {}
   const normalizedEvent = String(eventName).toLowerCase()
 
   if (normalizedEvent === 'visibilitychange') {
-    return visibilityState === 'hidden' && false
+    return false
   }
 
   return ['beforeunload', 'pagehide'].includes(normalizedEvent)
+}
+
+export const normalizeQuizFailureMeta = (result = {}) => {
+  const reason = String(result?.reason || '').trim().toLowerCase()
+  const isTimeout = Boolean(result?.timedOut) || reason === 'timeout'
+  const isCheat = Boolean(result?.cheatAttempt) || Boolean(result?.abandoned) || reason === 'cheat_attempt' || reason === 'abandon'
+
+  return {
+    ...result,
+    timedOut: isTimeout,
+    abandoned: Boolean(result?.abandoned) || (!isTimeout && isCheat),
+    cheatAttempt: Boolean(result?.cheatAttempt) || (!isTimeout && isCheat),
+    reason: isTimeout ? 'timeout' : (reason === 'cheat_attempt' || reason === 'abandon' ? 'cheat_attempt' : (reason || 'cheat_attempt'))
+  }
 }
 
 export const getAccountQuizLabel = (result) => {
