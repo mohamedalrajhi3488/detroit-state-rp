@@ -1393,9 +1393,16 @@ export default function App() {
     const latestAccountQuizResult = [...(siteData.quizResults || [])]
       .filter((entry) => String(entry?.discordId || '') === String(loggedUser?.id || ''))
       .sort((a, b) => new Date(b?.submittedAt || 0).getTime() - new Date(a?.submittedAt || 0).getTime())[0] || null
-    const accountQuizStatus = latestAccountQuizResult
-      ? (latestAccountQuizResult.passed === true ? 'ناجح' : 'لم ينجح')
-      : 'لم يبدأ الاختبار'
+
+    const ACTIVE_ACCOUNT_ROLE_ID = '1520224831063195683'
+    const INACTIVE_ACCOUNT_ROLE_ID = '1520224831063195682'
+    const detectedAccountRoleId = String(loggedUser?.roleId || loggedUser?.discordRoleId || loggedUser?.roleId || '').trim()
+    const accountStatus = (() => {
+      if (detectedAccountRoleId === ACTIVE_ACCOUNT_ROLE_ID) return 'مفعل'
+      if (detectedAccountRoleId === INACTIVE_ACCOUNT_ROLE_ID) return 'غير مفعل'
+      if (latestAccountQuizResult?.passed === true) return 'مفعل'
+      return 'غير مفعل'
+    })()
 
     return (
       <div className="app-shell">
@@ -1450,8 +1457,8 @@ export default function App() {
 
             <div className="account-summary-bar">
               <div>
-                <span>حالة الاختبار</span>
-                <strong>{accountQuizStatus}</strong>
+                <span>حالة الحساب</span>
+                <strong>{accountStatus}</strong>
               </div>
               <div>
                 <span>نوع العضوية</span>
@@ -1477,8 +1484,8 @@ export default function App() {
                 <strong>{accountRole}</strong>
               </div>
               <div className="account-meta-row">
-                <span>حالة الاختبار</span>
-                <strong>{accountQuizStatus}</strong>
+                <span>حالة الحساب</span>
+                <strong>{accountStatus}</strong>
               </div>
             </div>
 
