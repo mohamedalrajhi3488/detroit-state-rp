@@ -256,6 +256,32 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   )
   const isOwner = currentUserRole === 'Owner'
   const allowedTabs = getAvailableTabs(currentUserRole)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 900) setMobileSidebarOpen(false)
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  useEffect(() => {
+    if (window.innerWidth > 900) setMobileSidebarOpen(false)
+  }, [selectedTab])
+
+  useEffect(() => {
+    if (mobileSidebarOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [mobileSidebarOpen])
 
   useEffect(() => {
     setPages(data?.pages || [])
@@ -1433,7 +1459,17 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
 
   return (
     <div className="admin-panel-shell">
-      <aside className="admin-sidebar">
+      <button
+        type="button"
+        className="admin-mobile-toggle"
+        aria-label="فتح قائمة الإدارة"
+        aria-expanded={mobileSidebarOpen}
+        onClick={() => setMobileSidebarOpen((open) => !open)}
+      >
+        ☰
+      </button>
+
+      <aside className={mobileSidebarOpen ? 'admin-sidebar open' : 'admin-sidebar'}>
         <div className="admin-brand">
           <span className="brand-mark">
             <img src="/img/DS.webp" alt="DS logo" />
@@ -1464,7 +1500,10 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
               <button
                 key={key}
                 className={selectedTab === key ? 'admin-nav-item active' : 'admin-nav-item'}
-                onClick={() => setSelectedTab(key)}
+                onClick={() => {
+                  setSelectedTab(key)
+                  setMobileSidebarOpen(false)
+                }}
                 type="button"
               >
                 {label}
@@ -1481,6 +1520,15 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
         </button>
         <button type="button" className="logout-btn" onClick={onLogout}>تسجيل الخروج</button>
       </aside>
+
+      {mobileSidebarOpen && (
+        <button
+          type="button"
+          className="admin-mobile-backdrop"
+          aria-label="إغلاق قائمة الإدارة"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
 
       {activityDeleteConfirm && (
         <div className="delete-confirm-overlay" onClick={() => setActivityDeleteConfirm(null)}>
