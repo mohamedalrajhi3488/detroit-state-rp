@@ -237,10 +237,10 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
             }}
           />
 
-          <div className="faq-hero-content" style={{ gap: '18px' }}>
+          <div className="faq-hero-content" style={{ gap: '12px' }}>
             <span className="faq-eyebrow">الاختبار الإلكتروني</span>
-            <h1>{title}</h1>
-            <p style={{ margin: 0 }}>{message}</p>
+            <h1 style={{ margin: 0 }}>{title}</h1>
+            <p style={{ margin: 0, marginTop: '0.2rem' }}>{message}</p>
             {membershipError && (
               <div style={{
                 background: 'rgba(255, 86, 86, 0.12)',
@@ -273,7 +273,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
 
   if (latestQuizAttempt?.passed === true) {
     return renderHeroShell(
-      'تم إكمال الاختبار الأكتروني.',
+      'تم إكمال الاختبار',
       'تمت الموافقة على نجاحك في الاختبار، ولا يمكنك الدخول للأختبار مرة أخرى حتى يتم سحب الرتبة من قبل الإدارة إذا لزم الأمر.',
       <div style={{
         display: 'inline-flex',
