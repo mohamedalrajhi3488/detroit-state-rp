@@ -1287,16 +1287,7 @@ export default function App() {
 
     if (page.type === 'shop') return <Shop products={siteData.products || defaultShopProducts} />
     if (page.type === 'staff') return <StaffPage staff={siteData.staff || []} />
-    if (page.type === 'rules') {
-      return (
-        <section className="page-placeholder">
-          <div className="page-placeholder-card">
-            <span>404</span>
-            <h2>القوانين غير متاحة حالياً</h2>
-          </div>
-        </section>
-      )
-    }
+    if (page.type === 'rules') return <Rules pageMode />
     if (page.type === 'activities') {
       return (
         <section className="dynamic-page-shell">

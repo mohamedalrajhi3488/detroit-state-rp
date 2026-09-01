@@ -226,6 +226,18 @@ export const saveFaqGroupsToFirestore = async (faqGroups) => {
   }
 }
 
+export const saveRulesToFirestore = async (rulesGroups) => {
+  if (!Array.isArray(rulesGroups)) return null
+
+  try {
+    await setDoc(doc(db, 'rulesGroups', 'list'), { items: rulesGroups })
+    return rulesGroups
+  } catch (error) {
+    console.warn('Firestore rules groups save failed:', error)
+    return null
+  }
+}
+
 export const saveQuizQuestionsToFirestore = async (questions) => {
   if (!Array.isArray(questions)) return null
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { defaultFaqGroups } from './Faq'
-import { savePagesToFirestore, saveShopProductsToFirestore, saveCreatorsToFirestore, saveNewsToFirestore, saveUsersToFirestore, saveStaffToFirestore, saveFaqGroupsToFirestore, saveQuizQuestionsToFirestore, saveQuizResultsToFirestore } from '../firebase'
+import { savePagesToFirestore, saveShopProductsToFirestore, saveCreatorsToFirestore, saveNewsToFirestore, saveUsersToFirestore, saveStaffToFirestore, saveFaqGroupsToFirestore, saveQuizQuestionsToFirestore, saveQuizResultsToFirestore, saveRulesToFirestore } from '../firebase'
 
 const formatNumericActivityTime = (value) => {
   const date = new Date(value)
@@ -158,11 +158,11 @@ const getAvailableTabs = (role) => {
   const normalized = normalizeUserRole(role)
 
   if (normalized === 'Owner') {
-    return ['dashboard', 'pages', 'faq', 'quiz', 'quiz-results', 'shop', 'users', 'creators', 'staff', 'news', 'activities', 'settings']
+    return ['dashboard', 'pages', 'faq', 'rules', 'quiz', 'quiz-results', 'shop', 'users', 'creators', 'staff', 'news', 'activities', 'settings']
   }
 
   if (normalized === 'Admin') {
-    return ['dashboard', 'quiz-results', 'news', 'activities']
+    return ['dashboard', 'rules', 'quiz-results', 'news', 'activities']
   }
 
   if (normalized === 'Mod') {
@@ -171,6 +171,7 @@ const getAvailableTabs = (role) => {
 
   return []
 }
+
 
 export default function AdminPanel({ user, data, activityLog = [], onDataChange, onActivityAdd, onActivityDelete, onDeleteAllActivities, onLogout }) {
   const [pages, setPages] = useState(data?.pages || [])
@@ -229,6 +230,11 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   const [faqDraftGroups, setFaqDraftGroups] = useState(Array.isArray(data?.faqGroups) && data.faqGroups.length ? data.faqGroups : defaultFaqGroups)
   const [faqGroupModalOpen, setFaqGroupModalOpen] = useState(false)
   const [faqGroupForm, setFaqGroupForm] = useState({ title: '' })
+  const [rulesGroups, setRulesGroups] = useState(Array.isArray(data?.rulesGroups) && data.rulesGroups.length ? data.rulesGroups : [])
+  const [rulesDraftGroups, setRulesDraftGroups] = useState(Array.isArray(data?.rulesGroups) && data.rulesGroups.length ? data.rulesGroups : [])
+  const [rulesGroupModalOpen, setRulesGroupModalOpen] = useState(false)
+  const [rulesGroupForm, setRulesGroupForm] = useState({ title: '' })
+  const [rulesSearch, setRulesSearch] = useState('')
   const [quizQuestions, setQuizQuestions] = useState(Array.isArray(data?.quizQuestions) && data.quizQuestions.length ? data.quizQuestions : defaultQuizQuestions)
   const [quizDraftQuestions, setQuizDraftQuestions] = useState(Array.isArray(data?.quizQuestions) && data.quizQuestions.length ? data.quizQuestions : defaultQuizQuestions)
   const [quizTimeoutMinutesDraft, setQuizTimeoutMinutesDraft] = useState(Number(settings?.quizTimeoutMinutes || 5))
@@ -295,6 +301,8 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     const nextFaqGroups = Array.isArray(data?.faqGroups) && data.faqGroups.length ? data.faqGroups : defaultFaqGroups
     setFaqGroups(nextFaqGroups)
     setFaqDraftGroups(nextFaqGroups)
+    setRulesGroups(Array.isArray(data?.rulesGroups) && data.rulesGroups.length ? data.rulesGroups : [])
+    setRulesDraftGroups(Array.isArray(data?.rulesGroups) && data.rulesGroups.length ? data.rulesGroups : [])
     const nextQuizQuestions = Array.isArray(data?.quizQuestions) && data.quizQuestions.length ? data.quizQuestions : defaultQuizQuestions
     setQuizQuestions(nextQuizQuestions)
     setQuizDraftQuestions(nextQuizQuestions)
@@ -316,6 +324,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     nextProducts = shopProducts,
     nextStaff = staff,
     nextFaqGroups = faqGroups,
+    nextRulesGroups = rulesGroups,
     nextQuizQuestions = quizQuestions,
     nextQuizResults = quizResults
   ) => {
@@ -340,6 +349,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     setSettings(nextSettings)
     setShopProducts(nextProducts)
     setFaqGroups(nextFaqGroups)
+    setRulesGroups(nextRulesGroups)
     setQuizQuestions(nextQuizQuestions)
     setQuizResults(nextQuizResults)
 
@@ -401,6 +411,10 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
 
     if (Array.isArray(nextFaqGroups)) {
       saveFaqGroupsToFirestore(nextFaqGroups).catch((err) => { console.warn('saveFaqGroupsToFirestore error:', err); notify('error', 'فشل حفظ الأسئلة إلى Firestore.'); })
+    }
+
+    if (Array.isArray(nextRulesGroups)) {
+      saveRulesToFirestore(nextRulesGroups).catch((err) => { console.warn('saveRulesToFirestore error:', err); notify('error', 'فشل حفظ القوانين إلى Firestore.'); })
     }
 
     if (Array.isArray(nextQuizQuestions)) {
@@ -525,6 +539,14 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     notify('success', 'تم حذف قسم الأسئلة بنجاح.')
   }
 
+  const deleteRulesGroup = (groupId) => {
+    const group = (rulesDraftGroups || []).find((item) => item.id === groupId)
+    const nextGroups = (rulesDraftGroups || []).filter((item) => item.id !== groupId)
+    setRulesDraftGroups(nextGroups)
+    addAdminActivity('حذف قسم القوانين', `المستخدم ${user?.name || user?.username || 'Admin'} قام بحذف قسم القوانين: ${group?.title || 'غير معروف'}`, 'pink')
+    notify('success', 'تم حذف قسم القوانين بنجاح.')
+  }
+
   const deleteFaqItem = (groupId, itemId) => {
     const group = (faqDraftGroups || []).find((entry) => entry.id === groupId)
     const item = (group?.items || []).find((questionItem) => questionItem.id === itemId)
@@ -534,6 +556,17 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     setFaqDraftGroups(nextGroups)
     addAdminActivity('حذف سؤال', `المستخدم ${user?.name || user?.username || 'Admin'} قام بحذف سؤال من قسم ${group?.title || 'الأسئلة'}: ${item?.question || 'غير معروف'}`, 'pink')
     notify('success', 'تم حذف السؤال بنجاح.')
+  }
+
+  const deleteRulesItem = (groupId, itemId) => {
+    const group = (rulesDraftGroups || []).find((entry) => entry.id === groupId)
+    const item = (group?.items || []).find((ruleItem) => ruleItem.id === itemId)
+    const nextGroups = (rulesDraftGroups || []).map((groupEntry) => groupEntry.id === groupId
+      ? { ...groupEntry, items: (groupEntry.items || []).filter((ruleItem) => ruleItem.id !== itemId) }
+      : groupEntry)
+    setRulesDraftGroups(nextGroups)
+    addAdminActivity('حذف قاعدة', `المستخدم ${user?.name || user?.username || 'Admin'} قام بحذف قاعدة من قسم ${group?.title || 'القوانين'}: ${item?.text || 'غير معروف'}`, 'pink')
+    notify('success', 'تم حذف القاعدة بنجاح.')
   }
 
   const deleteQuizQuestion = (questionIndex) => {
@@ -1432,6 +1465,10 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
       deleteFaqGroup(pendingDelete.id)
     } else if (pendingDelete.type === 'faq-item') {
       deleteFaqItem(pendingDelete.groupId, pendingDelete.id)
+    } else if (pendingDelete.type === 'rules-group') {
+      deleteRulesGroup(pendingDelete.id)
+    } else if (pendingDelete.type === 'rules-item') {
+      deleteRulesItem(pendingDelete.groupId, pendingDelete.id)
     } else if (pendingDelete.type === 'quiz-question') {
       deleteQuizQuestion(pendingDelete.index)
     } else if (pendingDelete.type === 'quiz-result') {
@@ -1485,6 +1522,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
             ['dashboard', 'لوحة التحكم'],
             ['pages', 'صفحات الموقع'],
             ['faq', 'الأسئلة الشائعة'],
+            ['rules', 'القوانين'],
             ['quiz', 'الأختبار الإلكتروني'],
             ['quiz-results', 'نتائج الأختبار الإلكتروني'],
             ['shop', 'المتجر'],
@@ -1581,6 +1619,173 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
               </div>
             </div>
           </div>
+        )}
+        {selectedTab === 'rules' && (
+          <>
+            {rulesGroupModalOpen && (
+              <div className="faq-modal-overlay" onClick={() => setRulesGroupModalOpen(false)}>
+                <div className="faq-modal-card" onClick={(event) => event.stopPropagation()}>
+                  <div className="faq-modal-header">
+                    <h4>إضافة قسم قوانين جديد</h4>
+                    <button type="button" className="mini-btn" onClick={() => setRulesGroupModalOpen(false)}>إغلاق</button>
+                  </div>
+
+                  <form
+                    className="faq-modal-form"
+                    onSubmit={(event) => {
+                      event.preventDefault()
+                      const cleanTitle = rulesGroupForm.title.trim()
+                      if (!cleanTitle) return
+
+                      const nextGroups = [...rulesDraftGroups, { id: `rules-group-${Date.now()}`, title: cleanTitle, items: [] }]
+                      setRulesDraftGroups(nextGroups)
+                      setRulesGroupForm({ title: '' })
+                      setRulesGroupModalOpen(false)
+                      notify('success', `تمت إضافة قسم القوانين: ${cleanTitle}`)
+                    }}
+                  >
+                    <label className="faq-modal-field">
+                      <span>اسم القسم</span>
+                      <input
+                        type="text"
+                        value={rulesGroupForm.title}
+                        onChange={(event) => setRulesGroupForm({ title: event.target.value })}
+                        placeholder="مثال: القوانين الأساسية"
+                        autoFocus
+                      />
+                    </label>
+
+                    <div className="faq-modal-actions">
+                      <button type="button" className="mini-btn" onClick={() => setRulesGroupModalOpen(false)}>Cancel</button>
+                      <button type="submit" className="mini-btn primary">OK</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            <div className="panel-card">
+              <div className="panel-title-row">
+                <h3>إدارة القوانين</h3>
+                <div className="row-actions">
+                  <button
+                    type="button"
+                    className="mini-btn"
+                    onClick={() => setRulesGroupModalOpen(true)}
+                  >
+                    + قسم جديد
+                  </button>
+                  <button
+                    type="button"
+                    className="mini-btn primary"
+                    onClick={() => {
+                      setRulesGroups(rulesDraftGroups)
+                      commitData(pages, users, creators, news, settings, shopProducts, staff, faqGroups, rulesDraftGroups, quizQuestions, quizResults)
+                      addAdminActivity('تعديل القوانين', `المستخدم ${user?.name || user?.username || 'Admin'} قام بتعديل القوانين.`, 'gold')
+                      notify('success', 'تم حفظ تعديلات القوانين بنجاح.')
+                    }}
+                  >
+                    حفظ
+                  </button>
+                </div>
+              </div>
+
+              <div className="panel-search" style={{ marginBottom: '1rem' }}>
+                <span className="panel-search-icon">⌕</span>
+                <input
+                  type="search"
+                  value={rulesSearch}
+                  onChange={(event) => setRulesSearch(event.target.value)}
+                  placeholder="بحث في القوانين: القسم أو النص..."
+                  aria-label="بحث في القوانين"
+                />
+              </div>
+
+              <div className="faq-admin-groups">
+                {(rulesDraftGroups || []).filter((group) => {
+                  const q = (rulesSearch || '').trim().toLowerCase()
+                  if (!q) return true
+                  const hay = [group.title, ...(group.items || []).map((it) => it.text)].filter(Boolean).join(' ').toLowerCase()
+                  return hay.includes(q)
+                }).map((group, groupIndex) => (
+                  <div key={group.id || `${group.title}-${groupIndex}`} className="faq-admin-group">
+                    <div className="faq-admin-header">
+                      <input
+                        type="text"
+                        value={group.title}
+                        onChange={(event) => {
+                          const nextGroups = rulesDraftGroups.map((item) => item.id === group.id ? { ...item, title: event.target.value } : item)
+                          setRulesDraftGroups(nextGroups)
+                        }}
+                        placeholder="عنوان القسم"
+                      />
+                      <div className="row-actions">
+                        <button type="button" className="mini-btn" onClick={() => {
+                          const nextGroups = [...rulesDraftGroups]
+                          const [item] = nextGroups.splice(groupIndex, 1)
+                          nextGroups.splice(Math.max(0, groupIndex - 1), 0, item)
+                          setRulesDraftGroups(nextGroups)
+                        }} disabled={groupIndex === 0}>↑</button>
+                        <button type="button" className="mini-btn" onClick={() => {
+                          const nextGroups = [...rulesDraftGroups]
+                          const [item] = nextGroups.splice(groupIndex, 1)
+                          nextGroups.splice(Math.min(nextGroups.length, groupIndex + 1), 0, item)
+                          setRulesDraftGroups(nextGroups)
+                        }} disabled={groupIndex === rulesDraftGroups.length - 1}>↓</button>
+                        <button type="button" className="mini-btn danger" onClick={() => setPendingDelete({ type: 'rules-group', id: group.id, name: group.title || 'هذا القسم' })}>حذف</button>
+                      </div>
+                    </div>
+
+                    <div className="faq-admin-items">
+                      {(group.items || []).map((item, itemIndex) => (
+                        <div key={item.id || `${group.id}-${itemIndex}`} className="faq-admin-item">
+                          <input
+                            type="text"
+                            value={item.text}
+                            onChange={(event) => {
+                              const nextGroups = rulesDraftGroups.map((groupItem) => groupItem.id === group.id ? {
+                                ...groupItem,
+                                items: (groupItem.items || []).map((ruleItem) => ruleItem.id === item.id ? { ...ruleItem, text: event.target.value } : ruleItem)
+                              } : groupItem)
+                              setRulesDraftGroups(nextGroups)
+                            }}
+                            placeholder="نص القاعدة"
+                          />
+                          <div className="row-actions">
+                            <button type="button" className="mini-btn" onClick={() => {
+                              const nextGroups = rulesDraftGroups.map((g) => g.id === group.id ? { ...g, items: [...(g.items || [])] } : g)
+                              const items = nextGroups[groupIndex].items || []
+                              const [selected] = items.splice(itemIndex, 1)
+                              items.splice(Math.max(0, itemIndex - 1), 0, selected)
+                              nextGroups[groupIndex] = { ...nextGroups[groupIndex], items }
+                              setRulesDraftGroups(nextGroups)
+                            }} disabled={itemIndex === 0}>↑</button>
+                            <button type="button" className="mini-btn" onClick={() => {
+                              const nextGroups = rulesDraftGroups.map((g) => g.id === group.id ? { ...g, items: [...(g.items || [])] } : g)
+                              const items = nextGroups[groupIndex].items || []
+                              const [selected] = items.splice(itemIndex, 1)
+                              items.splice(Math.min(items.length, itemIndex + 1), 0, selected)
+                              nextGroups[groupIndex] = { ...nextGroups[groupIndex], items }
+                              setRulesDraftGroups(nextGroups)
+                            }} disabled={itemIndex === (group.items || []).length - 1}>↓</button>
+                            <button type="button" className="mini-btn danger" onClick={() => setPendingDelete({ type: 'rules-item', id: item.id, groupId: group.id, name: item.text || 'هذه القاعدة' })}>حذف</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button type="button" className="mini-btn" onClick={() => {
+                      const nextGroups = rulesDraftGroups.map((groupItem) => groupItem.id === group.id ? {
+                        ...groupItem,
+                        items: [...(groupItem.items || []), { id: `rule-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`, text: 'قاعدة جديدة' }]
+                      } : groupItem)
+                      setRulesDraftGroups(nextGroups)
+                    }}>+ إضافة قاعدة</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
         )}
 
         {selectedTab === 'dashboard' && (
