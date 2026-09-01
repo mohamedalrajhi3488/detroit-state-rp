@@ -3518,9 +3518,21 @@ img { max-width: 100%; display: block; }
 
 .creators-full-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 34px;
   align-items: start;
+}
+
+@media (max-width: 1200px) {
+  .creators-full-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .creators-full-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .rules-page-sidebar {
