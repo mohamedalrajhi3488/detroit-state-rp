@@ -9,6 +9,7 @@ export const defaultPages = [
   { id: 'rules', name: 'القوانين', status: 'visible', order: 8, type: 'rules', description: 'قوانين النظام وقواعد اللعبة.' },
   { id: 'tournaments', name: 'البطولات', status: 'visible', order: 9, type: 'tournaments', description: 'بطولات المسابقات والفعاليات.' },
   { id: 'activities', name: 'الأنشطة', status: 'hidden', order: 10, type: 'activities', description: 'سجل كامل للأنشطة والفعاليات داخل الموقع.' }
+  ,{ id: 'roster', name: 'صناع المحتوى', status: 'visible', order: 11, type: 'creators', description: 'قائمة صناع المحتوى والشركاء.' }
 ]
 
 const ensureRequiredPages = (pages = defaultPages) => {
@@ -49,6 +50,7 @@ export const resolvePageType = (page, index = 0) => {
   if (id === 'shop' || name.includes('متجر')) return 'shop'
   if (id === 'news' || name.includes('خبر') || name.includes('أخبار')) return 'news'
   if (id === 'staff' || name.includes('طاقم') || name.includes('اداري')) return 'staff'
+  if (id === 'roster' || name.includes('صناع المحتوى') || name.includes('صانع')) return 'creators'
   if (id === 'jobs' || name.includes('وظيفة') || name.includes('وظائف')) return 'jobs'
   if (id === 'rules' || name.includes('قانون') || name.includes('قوانين')) return 'rules'
   if (id === 'activities' || name.includes('نشاط') || name.includes('أنشطة')) return 'activities'

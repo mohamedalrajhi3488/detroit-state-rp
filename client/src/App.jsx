@@ -1266,7 +1266,6 @@ export default function App() {
         <>
           <Hero loggedUser={loggedUser} onLoginClick={handleLogin} />
           <Features />
-          <Streamers creators={siteData.creators || defaultCreators} />
           <Rules rules={siteData.rulesGroups || []} />
           <Jobs />
         </>
@@ -1292,6 +1291,7 @@ export default function App() {
     if (page.type === 'shop') return <Shop products={siteData.products || defaultShopProducts} />
     if (page.type === 'staff') return <StaffPage staff={siteData.staff || []} />
     if (page.type === 'rules') return <Rules pageMode rules={siteData.rulesGroups || []} />
+    if (page.type === 'creators') return <Streamers creators={siteData.creators || defaultCreators} />
     if (page.type === 'activities') {
       return (
         <section className="dynamic-page-shell">
