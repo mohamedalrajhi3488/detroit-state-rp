@@ -4182,7 +4182,7 @@ img { max-width: 100%; display: block; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto;
+  margin: 1.5rem auto 0;
   border: none;
   border-radius: 16px;
   padding: 0.95rem 1.55rem;
