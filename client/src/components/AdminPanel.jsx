@@ -2072,23 +2072,26 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                       type="text"
                       value={question.question}
                       onChange={(event) => {
-                        const nextQuestions = quizDraftQuestions.map((item, index) => index === questionIndex ? { ...item, question: event.target.value } : item)
-                        setQuizDraftQuestions(nextQuestions)
+                        setQuizDraftQuestions((currentQuestions) => currentQuestions.map((item, index) => index === questionIndex ? { ...item, question: event.target.value } : item))
                       }}
                       placeholder="نص السؤال"
                     />
                     <div className="row-actions">
                       <button type="button" className="mini-btn" onClick={() => {
-                        const nextQuestions = [...quizDraftQuestions]
-                        const [selected] = nextQuestions.splice(questionIndex, 1)
-                        nextQuestions.splice(Math.max(0, questionIndex - 1), 0, selected)
-                        setQuizDraftQuestions(nextQuestions)
+                        setQuizDraftQuestions((currentQuestions) => {
+                          const nextQuestions = [...currentQuestions]
+                          const [selected] = nextQuestions.splice(questionIndex, 1)
+                          nextQuestions.splice(Math.max(0, questionIndex - 1), 0, selected)
+                          return nextQuestions
+                        })
                       }} disabled={questionIndex === 0}>↑</button>
                       <button type="button" className="mini-btn" onClick={() => {
-                        const nextQuestions = [...quizDraftQuestions]
-                        const [selected] = nextQuestions.splice(questionIndex, 1)
-                        nextQuestions.splice(Math.min(nextQuestions.length, questionIndex + 1), 0, selected)
-                        setQuizDraftQuestions(nextQuestions)
+                        setQuizDraftQuestions((currentQuestions) => {
+                          const nextQuestions = [...currentQuestions]
+                          const [selected] = nextQuestions.splice(questionIndex, 1)
+                          nextQuestions.splice(Math.min(nextQuestions.length, questionIndex + 1), 0, selected)
+                          return nextQuestions
+                        })
                       }} disabled={questionIndex === quizDraftQuestions.length - 1}>↓</button>
                       <button type="button" className="mini-btn danger" onClick={() => setPendingDelete({ type: 'quiz-question', index: questionIndex, name: question.question || `السؤال ${questionIndex + 1}` })}>حذف</button>
                     </div>
@@ -2101,11 +2104,10 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                           type="text"
                           value={option}
                           onChange={(event) => {
-                            const nextQuestions = quizDraftQuestions.map((item, index) => index === questionIndex ? {
+                            setQuizDraftQuestions((currentQuestions) => currentQuestions.map((item, index) => index === questionIndex ? {
                               ...item,
                               options: (item.options || []).map((choice, choiceIndex) => choiceIndex === optionIndex ? event.target.value : choice)
-                            } : item)
-                            setQuizDraftQuestions(nextQuestions)
+                            } : item))
                           }}
                           placeholder={`الخيار ${optionIndex + 1}`}
                         />
@@ -2115,8 +2117,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                             name={`correct-${question.id}`}
                             checked={Number(question.correctIndex) === optionIndex}
                             onChange={() => {
-                              const nextQuestions = quizDraftQuestions.map((item, index) => index === questionIndex ? { ...item, correctIndex: optionIndex } : item)
-                              setQuizDraftQuestions(nextQuestions)
+                              setQuizDraftQuestions((currentQuestions) => currentQuestions.map((item, index) => index === questionIndex ? { ...item, correctIndex: optionIndex } : item))
                             }}
                           />
                           <span>إجابة صحيحة</span>
@@ -2130,13 +2131,12 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
 
             <div className="row-actions" style={{ marginTop: '1rem' }}>
               <button type="button" className="mini-btn" onClick={() => {
-                const nextQuestions = [...quizDraftQuestions, {
+                setQuizDraftQuestions((currentQuestions) => [...currentQuestions, {
                   id: `quiz-q-${Date.now()}`,
                   question: 'سؤال جديد',
                   options: ['خيار 1', 'خيار 2', 'خيار 3', 'خيار 4'],
                   correctIndex: 0
-                }]
-                setQuizDraftQuestions(nextQuestions)
+                }])
               }}>+ إضافة سؤال</button>
             </div>
           </div>
