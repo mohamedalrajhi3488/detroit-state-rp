@@ -337,6 +337,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
       products: nextProducts,
       staff: nextStaff,
       faqGroups: nextFaqGroups,
+      rulesGroups: nextRulesGroups,
       quizQuestions: nextQuizQuestions,
       quizResults: nextQuizResults
     }
@@ -380,6 +381,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
         products: nextProducts,
         staff: nextStaff,
         faqGroups: nextFaqGroups,
+        rulesGroups: nextRulesGroups,
         quizQuestions: nextQuizQuestions,
         quizResults: nextQuizResults
       }))

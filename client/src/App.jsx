@@ -327,6 +327,7 @@ const getSavedData = () => {
       products: Array.isArray(parsed.products) && parsed.products.length ? parsed.products : defaultShopProducts,
       staff: normalizeStaff(parsed.staff || defaultStaff),
       faqGroups: Array.isArray(parsed.faqGroups) && parsed.faqGroups.length ? parsed.faqGroups : defaultFaqState,
+      rulesGroups: Array.isArray(parsed.rulesGroups) && parsed.rulesGroups.length ? parsed.rulesGroups : [],
       quizQuestions: Array.isArray(parsed.quizQuestions) && parsed.quizQuestions.length ? parsed.quizQuestions : defaultQuizQuestions,
       quizResults: Array.isArray(parsed.quizResults) ? parsed.quizResults : defaultQuizResults
     }
@@ -1263,7 +1264,7 @@ export default function App() {
           <Hero loggedUser={loggedUser} onLoginClick={handleLogin} />
           <Features />
           <Streamers creators={siteData.creators || defaultCreators} />
-          <Rules />
+          <Rules rules={siteData.rulesGroups || []} />
           <Jobs />
         </>
       )
@@ -1287,7 +1288,7 @@ export default function App() {
 
     if (page.type === 'shop') return <Shop products={siteData.products || defaultShopProducts} />
     if (page.type === 'staff') return <StaffPage staff={siteData.staff || []} />
-    if (page.type === 'rules') return <Rules pageMode />
+    if (page.type === 'rules') return <Rules pageMode rules={siteData.rulesGroups || []} />
     if (page.type === 'activities') {
       return (
         <section className="dynamic-page-shell">
