@@ -358,6 +358,16 @@ export const getFaqGroupsFromFirestore = async () => {
   }
 }
 
+export const getRulesFromFirestore = async () => {
+  try {
+    const snapshot = await getDoc(doc(db, 'rulesGroups', 'list'))
+    return snapshot.exists() ? (snapshot.data()?.items || []) : []
+  } catch (error) {
+    console.warn('Firestore rules groups fetch failed:', error)
+    return []
+  }
+}
+
 export const getQuizQuestionsFromFirestore = async () => {
   try {
     const snapshot = await getDoc(doc(db, 'quizQuestions', 'list'))

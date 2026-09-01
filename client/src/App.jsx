@@ -497,12 +497,13 @@ export default function App() {
           getShopProductsFromFirestore(),
           getStaffFromFirestore(),
           getFaqGroupsFromFirestore(),
+          getRulesFromFirestore(),
           getQuizQuestionsFromFirestore(),
           getQuizResultsFromFirestore()
         ])
 
-        const [settings, pages, creators, news, products, staff, faqGroups, quizQuestions, quizResults] = firestoreData
-        const hasRemoteData = Boolean(settings) || pages.length > 0 || creators.length > 0 || news.length > 0 || products.length > 0 || staff.length > 0 || faqGroups.length > 0 || quizQuestions.length > 0 || quizResults.length > 0
+        const [settings, pages, creators, news, products, staff, faqGroups, rulesGroups, quizQuestions, quizResults] = firestoreData
+        const hasRemoteData = Boolean(settings) || pages.length > 0 || creators.length > 0 || news.length > 0 || products.length > 0 || staff.length > 0 || faqGroups.length > 0 || rulesGroups.length > 0 || quizQuestions.length > 0 || quizResults.length > 0
 
         if (hasRemoteData) {
           siteDataHydratedRef.current = true
@@ -515,6 +516,7 @@ export default function App() {
             products: products.length ? products : current.products || defaultShopProducts,
             staff: staff.length ? normalizeStaff(staff) : current.staff || defaultStaff,
             faqGroups: faqGroups.length ? faqGroups : current.faqGroups || defaultFaqState,
+            rulesGroups: rulesGroups.length ? rulesGroups : (current.rulesGroups || []),
             quizQuestions: quizQuestions.length ? quizQuestions : current.quizQuestions || defaultQuizQuestions,
             quizResults: quizResults.length ? quizResults : current.quizResults || defaultQuizResults
           }))
