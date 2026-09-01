@@ -9,20 +9,27 @@ export default function Streamers({ creators = [], pageMode = false }) {
 
   if (pageMode) {
     return (
-      <section id="creators" className="creators-page-shell">
-        <div className="creators-page-inner">
-          <header className="creators-page-header" style={{
-            backgroundImage: "linear-gradient(90deg, rgba(10,6,18,0.8), rgba(10,6,18,0.36)), url('/img/banner.png')"
-          }}>
-            <div className="creators-page-hero">
-              <span className="creators-eyebrow">شركاء النجاح</span>
+      <section id="creators" className="rules-page-shell">
+        <div className="rules-page-inner">
+          <header className="rules-page-header">
+            <div
+              className="rules-page-hero"
+              style={{
+                backgroundImage: "linear-gradient(90deg, rgba(10, 6, 18, 0.8), rgba(10, 6, 18, 0.36)), url('/img/banner.png')"
+              }}
+            />
+
+            <div className="rules-page-hero-content">
+              <span className="rules-page-eyebrow">شركاء النجاح</span>
               <h1>صناع المحتوى</h1>
               <p>نخبة من صناع المحتوى في مدينة ديترويت.</p>
             </div>
           </header>
 
-          <div className="creators-page-content">
-            <div className="streamers-grid creator-grid">
+          <div className="rules-page-layout">
+            <main className="rules-page-content">
+              <section className="rules-page-panel creators-panel">
+                <div className="streamers-grid creator-grid">
               {visibleCreators.map(({ name, platform, followers, image, url, id }, index) => {
                 const initials = (name || 'DS')
                   .split(/\s+/)
@@ -54,7 +61,9 @@ export default function Streamers({ creators = [], pageMode = false }) {
                   </div>
                 )
               })}
-            </div>
+                </div>
+              </section>
+            </main>
           </div>
         </div>
       </section>
