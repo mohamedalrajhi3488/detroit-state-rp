@@ -1286,7 +1286,6 @@ export default function App() {
     }
 
     if (page.type === 'shop') return <Shop products={siteData.products || defaultShopProducts} />
-    if (page.type === 'jobs') return <Jobs />
     if (page.type === 'staff') return <StaffPage staff={siteData.staff || []} />
     if (page.type === 'rules') return <Rules />
     if (page.type === 'activities') {
