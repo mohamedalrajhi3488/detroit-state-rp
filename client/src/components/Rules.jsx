@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useRef, useEffect } from 'react'
 
 const featurePoints = [
   'صُمم السيرفر ليقدم تجربة متكاملة تجمع بين الواقعية، التنوع، والاحترافية في كل تفاصيل المدينة.',
@@ -9,11 +9,39 @@ const featurePoints = [
 export default function Rules({ pageMode = false, rules = [] }) {
   const groups = Array.isArray(rules) ? rules : []
   const [activeRuleId, setActiveRuleId] = useState(groups.length ? groups[0].id : null)
+  const panelRef = useRef(null)
 
   const activeRule = useMemo(
     () => groups.find((rule) => rule.id === activeRuleId) || groups[0] || null,
     [activeRuleId, groups]
   )
+
+  useEffect(() => {
+    // ensure activeRuleId stays valid when groups change
+    if (!groups || !groups.length) {
+      setActiveRuleId(null)
+      return
+    }
+    if (!activeRuleId) {
+      setActiveRuleId(groups[0].id)
+      return
+    }
+    const exists = groups.some((g) => g.id === activeRuleId)
+    if (!exists) setActiveRuleId(groups[0].id)
+  }, [groups])
+
+  useEffect(() => {
+    // scroll panel into view and reset its internal scroll when active rule changes
+    try {
+      if (panelRef?.current && activeRuleId) {
+        panelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        // if panel has internal overflow, reset scrollTop
+        panelRef.current.scrollTop = 0
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [activeRuleId])
 
   if (pageMode) {
     return (
@@ -41,7 +69,17 @@ export default function Rules({ pageMode = false, rules = [] }) {
                   key={rule.id || idx}
                   type="button"
                   className={`rules-page-link ${activeRuleId === (rule.id || null) ? 'active' : ''}`}
-                  onClick={() => setActiveRuleId(rule.id)}
+                  onClick={() => {
+                    setActiveRuleId(rule.id)
+                    try {
+                      if (panelRef?.current) {
+                        panelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                        panelRef.current.scrollTop = 0
+                      }
+                    } catch (e) {
+                      // ignore
+                    }
+                  }}
                 >
                   <span className="rules-page-link-number">{rule.number || String(idx + 1).padStart(2, '0')}</span>
                   <span className="rules-page-link-text">{rule.title}</span>
@@ -49,7 +87,7 @@ export default function Rules({ pageMode = false, rules = [] }) {
               ))}
             </aside>
 
-            <main className="rules-page-content">
+            <main ref={panelRef} className="rules-page-content">
               <section className="rules-page-panel">
                 {activeRule ? (
                   <>
