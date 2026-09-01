@@ -23,6 +23,7 @@ import {
   getUsersFromFirestore,
   getStaffFromFirestore,
   getFaqGroupsFromFirestore,
+  getRulesFromFirestore,
   getQuizQuestionsFromFirestore,
   getQuizResultsFromFirestore,
   saveActivityToFirestore,
