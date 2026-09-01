@@ -3496,6 +3496,19 @@ img { max-width: 100%; display: block; }
   align-items: start;
 }
 
+/* Full-width content container for creators roster page (no sidebar) */
+.creators-page-layout {
+  max-width: 1200px;
+  margin: 28px auto 0;
+  padding: 0 20px;
+}
+
+.creators-panel .streamers-grid.creator-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
 .rules-page-sidebar {
   position: sticky;
   top: 90px;

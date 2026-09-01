@@ -26,7 +26,7 @@ export default function Streamers({ creators = [], pageMode = false }) {
             </div>
           </header>
 
-          <div className="rules-page-layout">
+          <div className="creators-page-layout">
             <main className="rules-page-content">
               <section className="rules-page-panel creators-panel">
                 <div className="streamers-grid creator-grid">
