@@ -66,7 +66,7 @@ export default function Rules({ pageMode = false, rules = [] }) {
                   </>
                 ) : (
                   <div style={{ padding: '1rem' }}>
-                    <p>لا توجد قوانين مضافة حالياً. أضفها من لوحة التحكم.</p>
+                    <p>لا توجد قوانين مضافة حالياً.</p>
                   </div>
                 )}
               </section>
