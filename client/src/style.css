@@ -3512,26 +3512,33 @@ img { max-width: 100%; display: block; }
 /* Full-bleed creators layout */
 .creators-full-layout {
   width: 100%;
-  padding: 40px 60px;
+  padding: 60px 80px;
   box-sizing: border-box;
+  max-width: none;
 }
 
 .creators-full-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 34px;
+  grid-template-columns: repeat(4, minmax(260px, 1fr));
+  gap: 48px;
   align-items: start;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
   .creators-full-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(240px, 1fr));
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
   .creators-full-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .creators-full-grid {
+    grid-template-columns: 1fr;
   }
 }
 
