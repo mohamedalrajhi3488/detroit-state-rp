@@ -440,7 +440,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     const nextSettings = { ...settings, quizTimeoutMinutes: Math.max(1, Number(quizTimeoutMinutesDraft) || 5) }
     setQuizQuestions(quizDraftQuestions)
     setSettings(nextSettings)
-    commitData(pages, users, creators, news, nextSettings, shopProducts, staff, faqGroups, quizDraftQuestions, quizResults)
+    commitData(pages, users, creators, news, nextSettings, shopProducts, staff, faqGroups, rulesGroups, quizDraftQuestions, quizResults)
     addAdminActivity('تعديل أسئلة الاختبار', `المستخدم ${user?.name || user?.username || 'Admin'} قام بتعديل أسئلة الاختبار الإلكتروني.`, 'gold')
     notify('success', 'تم حفظ أسئلة الاختبار بنجاح.')
   }
@@ -464,7 +464,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
 
       const nextResults = (quizResults || []).map((item) => String(item.id) === String(result.id) ? { ...item, reviewed: true, passed: true, roleGranted: true } : item)
       setQuizResults(nextResults)
-      commitData(pages, users, creators, news, settings, shopProducts, staff, faqGroups, quizQuestions, nextResults)
+      commitData(pages, users, creators, news, settings, shopProducts, staff, faqGroups, rulesGroups, quizQuestions, nextResults)
       addAdminActivity('منح رتبة نجاح', `المستخدم ${user?.name || user?.username || 'Admin'} قام بمنح رتبة النجاح للمستخدم: ${result?.userName || result?.discordId || 'غير معروف'}`, 'green')
       notify('success', 'تم منح رتبة النجاح بنجاح.')
     } catch (error) {
@@ -495,7 +495,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
         : item)
 
       setQuizResults(nextResults)
-      commitData(pages, users, creators, news, settings, shopProducts, staff, faqGroups, quizQuestions, nextResults)
+      commitData(pages, users, creators, news, settings, shopProducts, staff, faqGroups, rulesGroups, quizQuestions, nextResults)
       addAdminActivity('سحب رتبة نجاح', `المستخدم ${user?.name || user?.username || 'Admin'} قام بسحب رتبة النجاح من المستخدم: ${result?.userName || result?.discordId || 'غير معروف'}`, 'pink')
       notify('success', 'تم سحب رتبة النجاح بنجاح.')
     } catch (error) {
@@ -528,7 +528,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
       clearQuizFailureForUser(targetUserId)
     }
     setQuizResults(nextResults)
-    commitData(pages, users, creators, news, settings, shopProducts, staff, faqGroups, quizQuestions, nextResults)
+    commitData(pages, users, creators, news, settings, shopProducts, staff, faqGroups, rulesGroups, quizQuestions, nextResults)
     addAdminActivity('حذف نتيجة اختبار', `المستخدم ${user?.name || user?.username || 'Admin'} قام بحذف نتيجة الاختبار: ${result?.userName || 'غير معروف'}`, 'pink')
     notify('success', 'تم حذف نتيجة الاختبار بنجاح.')
   }
