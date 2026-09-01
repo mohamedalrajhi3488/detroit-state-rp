@@ -10,6 +10,7 @@ export default function Rules({ pageMode = false, rules = [] }) {
   const groups = Array.isArray(rules) ? rules : []
   const [activeRuleId, setActiveRuleId] = useState(groups.length ? groups[0].id : null)
   const panelRef = useRef(null)
+  const headerRef = useRef(null)
 
   const activeRule = useMemo(
     () => groups.find((rule) => rule.id === activeRuleId) || groups[0] || null,
@@ -33,11 +34,9 @@ export default function Rules({ pageMode = false, rules = [] }) {
   useEffect(() => {
     // scroll panel into view and reset its internal scroll when active rule changes
     try {
-      if (panelRef?.current && activeRuleId) {
-        panelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        // if panel has internal overflow, reset scrollTop
-        panelRef.current.scrollTop = 0
-      }
+      // scroll to header/title first so the panel content appears under the hero
+      if (headerRef?.current) headerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      if (panelRef?.current) panelRef.current.scrollTop = 0
     } catch (e) {
       // ignore
     }
@@ -47,7 +46,7 @@ export default function Rules({ pageMode = false, rules = [] }) {
     return (
       <section id="rules" className="rules-page-shell">
         <div className="rules-page-inner">
-          <header className="rules-page-header">
+          <header ref={headerRef} className="rules-page-header">
             <div
               className="rules-page-hero"
               style={{
