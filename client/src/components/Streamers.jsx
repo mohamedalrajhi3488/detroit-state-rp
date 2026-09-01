@@ -26,10 +26,8 @@ export default function Streamers({ creators = [], pageMode = false }) {
             </div>
           </header>
 
-          <div className="creators-page-layout">
-            <main className="rules-page-content">
-              <section className="rules-page-panel creators-panel">
-                <div className="streamers-grid creator-grid">
+          <div className="creators-full-layout">
+            <div className="streamers-grid creator-grid creators-full-grid">
               {visibleCreators.map(({ name, platform, followers, image, url, id }, index) => {
                 const initials = (name || 'DS')
                   .split(/\s+/)
@@ -61,9 +59,7 @@ export default function Streamers({ creators = [], pageMode = false }) {
                   </div>
                 )
               })}
-                </div>
-              </section>
-            </main>
+            </div>
           </div>
         </div>
       </section>

@@ -3509,6 +3509,20 @@ img { max-width: 100%; display: block; }
   gap: 20px;
 }
 
+/* Full-bleed creators layout */
+.creators-full-layout {
+  width: 100%;
+  padding: 40px 60px;
+  box-sizing: border-box;
+}
+
+.creators-full-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 34px;
+  align-items: start;
+}
+
 .rules-page-sidebar {
   position: sticky;
   top: 90px;
