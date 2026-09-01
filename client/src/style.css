@@ -3514,7 +3514,8 @@ img { max-width: 100%; display: block; }
   width: 100%;
   padding: 60px 80px;
   box-sizing: border-box;
-  max-width: none;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .creators-full-grid {
@@ -3522,6 +3523,8 @@ img { max-width: 100%; display: block; }
   grid-template-columns: repeat(4, minmax(260px, 1fr));
   gap: 48px;
   align-items: start;
+  justify-content: center;
+  justify-items: center;
 }
 
 @media (max-width: 1400px) {
