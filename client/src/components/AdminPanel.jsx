@@ -240,6 +240,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
   const [quizTimeoutMinutesDraft, setQuizTimeoutMinutesDraft] = useState(Number(settings?.quizTimeoutMinutes || 5))
   const [quizResults, setQuizResults] = useState(Array.isArray(data?.quizResults) ? data.quizResults : [])
   const [expandedResultId, setExpandedResultId] = useState(null)
+  const didInitializeDraftsRef = useRef(false)
 
   const [shopForm, setShopForm] = useState({
     id: null,
@@ -298,15 +299,22 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
     setShopProducts(data?.products || [])
     setSettings(data?.settings || {})
     setQuizTimeoutMinutesDraft(Number((data?.settings?.quizTimeoutMinutes ?? 5)))
+
     const nextFaqGroups = Array.isArray(data?.faqGroups) && data.faqGroups.length ? data.faqGroups : defaultFaqGroups
-    setFaqGroups(nextFaqGroups)
-    setFaqDraftGroups(nextFaqGroups)
-    setRulesGroups(Array.isArray(data?.rulesGroups) && data.rulesGroups.length ? data.rulesGroups : [])
-    setRulesDraftGroups(Array.isArray(data?.rulesGroups) && data.rulesGroups.length ? data.rulesGroups : [])
+    const nextRulesGroups = Array.isArray(data?.rulesGroups) && data.rulesGroups.length ? data.rulesGroups : []
     const nextQuizQuestions = Array.isArray(data?.quizQuestions) && data.quizQuestions.length ? data.quizQuestions : defaultQuizQuestions
+
+    setFaqGroups(nextFaqGroups)
+    setRulesGroups(nextRulesGroups)
     setQuizQuestions(nextQuizQuestions)
-    setQuizDraftQuestions(nextQuizQuestions)
     setQuizResults(Array.isArray(data?.quizResults) ? data.quizResults : [])
+
+    if (!didInitializeDraftsRef.current) {
+      setFaqDraftGroups(nextFaqGroups)
+      setRulesDraftGroups(nextRulesGroups)
+      setQuizDraftQuestions(nextQuizQuestions)
+      didInitializeDraftsRef.current = true
+    }
   }, [data])
 
   useEffect(() => {
