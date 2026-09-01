@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { getAccountQuizLabel, getQuizEligibility, resolveQuizTimeoutMinutes, DEFAULT_QUIZ_TIMEOUT_MINUTES, shouldTreatQuizExitAsAbandon, normalizeQuizFailureMeta, shouldIgnoreQuizAbandonRecording } from './quizStatusUtils.mjs'
+import { getAccountQuizLabel, getQuizEligibility, resolveQuizTimeoutMinutes, DEFAULT_QUIZ_TIMEOUT_MINUTES, shouldTreatQuizExitAsAbandon, normalizeQuizFailureMeta, shouldIgnoreQuizAbandonRecording, normalizeQuizQuestionOptions } from './quizStatusUtils.mjs'
 
 test('quiz cheating metadata is preserved for admin review', () => {
   const meta = normalizeQuizFailureMeta({ reason: 'cheat_attempt', cheatAttempt: true, abandoned: true })
@@ -50,4 +50,18 @@ test('quiz timeout defaults to five minutes and supports admin overrides', () =>
   assert.equal(resolveQuizTimeoutMinutes({ quizTimeoutMinutes: 10 }), 10 * 60 * 1000)
   assert.equal(resolveQuizTimeoutMinutes({}), 5 * 60 * 1000)
   assert.equal(resolveQuizTimeoutMinutes({ quizTimeoutMinutes: -2 }), 5 * 60 * 1000)
+})
+
+test('question option counts can be normalized to 4, 6, or 8 choices', () => {
+  const fourChoiceQuestion = normalizeQuizQuestionOptions({ question: 'Q1', options: ['A', 'B', 'C', 'D'], correctIndex: 2 }, 4)
+  assert.deepEqual(fourChoiceQuestion.options, ['A', 'B', 'C', 'D'])
+  assert.equal(fourChoiceQuestion.correctIndex, 2)
+
+  const sixChoiceQuestion = normalizeQuizQuestionOptions({ question: 'Q2', options: ['A', 'B', 'C', 'D'], correctIndex: 7 }, 6)
+  assert.equal(sixChoiceQuestion.options.length, 6)
+  assert.equal(sixChoiceQuestion.correctIndex, 0)
+
+  const eightChoiceQuestion = normalizeQuizQuestionOptions({ question: 'Q3', options: ['A', 'B', 'C', 'D', 'E', 'F'], correctIndex: 3 }, 8)
+  assert.equal(eightChoiceQuestion.options.length, 8)
+  assert.equal(eightChoiceQuestion.options[7], 'خيار 8')
 })

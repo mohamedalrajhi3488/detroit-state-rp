@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { defaultFaqGroups } from './Faq'
 import { savePagesToFirestore, saveShopProductsToFirestore, saveCreatorsToFirestore, saveNewsToFirestore, saveUsersToFirestore, saveStaffToFirestore, saveFaqGroupsToFirestore, saveQuizQuestionsToFirestore, saveQuizResultsToFirestore, saveRulesToFirestore } from '../firebase'
+import { normalizeQuizQuestionOptions } from '../quizStatusUtils.mjs'
 
 const formatNumericActivityTime = (value) => {
   const date = new Date(value)
@@ -302,7 +303,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
 
     const nextFaqGroups = Array.isArray(data?.faqGroups) && data.faqGroups.length ? data.faqGroups : defaultFaqGroups
     const nextRulesGroups = Array.isArray(data?.rulesGroups) && data.rulesGroups.length ? data.rulesGroups : []
-    const nextQuizQuestions = Array.isArray(data?.quizQuestions) && data.quizQuestions.length ? data.quizQuestions : defaultQuizQuestions
+    const nextQuizQuestions = (Array.isArray(data?.quizQuestions) && data.quizQuestions.length ? data.quizQuestions : defaultQuizQuestions).map((question) => normalizeQuizQuestionOptions(question, question?.options?.length || 4))
 
     setFaqGroups(nextFaqGroups)
     setRulesGroups(nextRulesGroups)
@@ -2089,6 +2090,20 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                       }}
                       placeholder="نص السؤال"
                     />
+                    <label className="creator-field" style={{ minWidth: '150px', margin: 0 }}>
+                      <span>عدد الخيارات</span>
+                      <select
+                        value={Array.isArray(question.options) && [4, 6, 8].includes(question.options.length) ? question.options.length : 4}
+                        onChange={(event) => {
+                          const nextCount = Number(event.target.value)
+                          setQuizDraftQuestions((currentQuestions) => currentQuestions.map((item, index) => index === questionIndex ? normalizeQuizQuestionOptions(item, nextCount) : item))
+                        }}
+                      >
+                        <option value={4}>4 خيارات</option>
+                        <option value={6}>6 خيارات</option>
+                        <option value={8}>8 خيارات</option>
+                      </select>
+                    </label>
                     <div className="row-actions">
                       <button type="button" className="mini-btn" onClick={() => {
                         setQuizDraftQuestions((currentQuestions) => {
@@ -2144,12 +2159,12 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
 
             <div className="row-actions" style={{ marginTop: '1rem' }}>
               <button type="button" className="mini-btn" onClick={() => {
-                setQuizDraftQuestions((currentQuestions) => [...currentQuestions, {
+                setQuizDraftQuestions((currentQuestions) => [...currentQuestions, normalizeQuizQuestionOptions({
                   id: `quiz-q-${Date.now()}`,
                   question: 'سؤال جديد',
                   options: ['خيار 1', 'خيار 2', 'خيار 3', 'خيار 4', 'خيار 5', 'خيار 6'],
                   correctIndex: 0
-                }])
+                }, 6)])
               }}>+ إضافة سؤال</button>
             </div>
           </div>

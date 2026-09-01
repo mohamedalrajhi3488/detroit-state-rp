@@ -700,6 +700,7 @@
 
 .faq-admin-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -711,8 +712,8 @@
 }
 
 .faq-admin-header input {
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 220px;
+  min-width: 180px;
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(168, 122, 255, 0.2);
   border-radius: 10px;
@@ -720,6 +721,16 @@
   font: inherit;
   font-weight: 700;
   padding: 12px 14px;
+}
+
+.faq-admin-header > .creator-field {
+  flex: 0 0 160px;
+  min-width: 160px;
+  margin: 0;
+}
+
+.faq-admin-header > .row-actions {
+  margin-left: auto;
 }
 
 .faq-admin-items {

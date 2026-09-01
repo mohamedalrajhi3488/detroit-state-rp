@@ -1,5 +1,21 @@
 export const DEFAULT_QUIZ_TIMEOUT_MINUTES = 5
 export const QUIZ_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000
+export const QUIZ_OPTION_COUNTS = [4, 6, 8]
+
+export const normalizeQuizQuestionOptions = (question = {}, optionCount = 4) => {
+  const requestedCount = Number(optionCount)
+  const safeCount = QUIZ_OPTION_COUNTS.includes(requestedCount) ? requestedCount : 4
+  const existingOptions = Array.isArray(question?.options) ? question.options.slice(0, safeCount) : []
+  const nextOptions = Array.from({ length: safeCount }, (_, index) => existingOptions[index] ?? `خيار ${index + 1}`)
+  const currentCorrectIndex = Number(question?.correctIndex)
+  const safeCorrectIndex = Number.isInteger(currentCorrectIndex) && currentCorrectIndex >= 0 && currentCorrectIndex < safeCount ? currentCorrectIndex : 0
+
+  return {
+    ...question,
+    options: nextOptions,
+    correctIndex: safeCorrectIndex
+  }
+}
 
 export const resolveQuizTimeoutMinutes = ({ quizTimeoutMinutes, fallbackMinutes = DEFAULT_QUIZ_TIMEOUT_MINUTES } = {}) => {
   const numericValue = Number(quizTimeoutMinutes)
