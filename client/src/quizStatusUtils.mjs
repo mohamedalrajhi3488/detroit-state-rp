@@ -23,6 +23,15 @@ export const shouldTreatQuizExitAsAbandon = ({ eventName, visibilityState } = {}
   return ['beforeunload', 'pagehide'].includes(normalizedEvent)
 }
 
+export const shouldIgnoreQuizAbandonRecording = ({ started, submitted, timedOut, failSubmissionRef, finalized } = {}) => {
+  if (!started) return true
+  if (Boolean(finalized)) return true
+  if (Boolean(submitted)) return true
+  if (Boolean(timedOut)) return true
+  if (Boolean(failSubmissionRef)) return true
+  return false
+}
+
 export const normalizeQuizFailureMeta = (result = {}) => {
   const reason = String(result?.reason || '').trim().toLowerCase()
   const isTimeout = Boolean(result?.timedOut) || reason === 'timeout'

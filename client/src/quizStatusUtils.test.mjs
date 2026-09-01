@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { getAccountQuizLabel, getQuizEligibility, resolveQuizTimeoutMinutes, DEFAULT_QUIZ_TIMEOUT_MINUTES, shouldTreatQuizExitAsAbandon, normalizeQuizFailureMeta } from './quizStatusUtils.mjs'
+import { getAccountQuizLabel, getQuizEligibility, resolveQuizTimeoutMinutes, DEFAULT_QUIZ_TIMEOUT_MINUTES, shouldTreatQuizExitAsAbandon, normalizeQuizFailureMeta, shouldIgnoreQuizAbandonRecording } from './quizStatusUtils.mjs'
 
 test('quiz cheating metadata is preserved for admin review', () => {
   const meta = normalizeQuizFailureMeta({ reason: 'cheat_attempt', cheatAttempt: true, abandoned: true })
@@ -16,6 +16,11 @@ test('minimizing or switching tabs is not treated as quiz abandonment', () => {
   assert.equal(shouldTreatQuizExitAsAbandon({ eventName: 'blur' }), false)
   assert.equal(shouldTreatQuizExitAsAbandon({ eventName: 'pagehide' }), true)
   assert.equal(shouldTreatQuizExitAsAbandon({ eventName: 'beforeunload' }), true)
+})
+
+test('a finalized valid submission does not get treated as a cheating abandonment', () => {
+  assert.equal(shouldIgnoreQuizAbandonRecording({ started: true, submitted: false, timedOut: false, failSubmissionRef: false, finalized: true }), true)
+  assert.equal(shouldIgnoreQuizAbandonRecording({ started: true, submitted: false, timedOut: false, failSubmissionRef: false, finalized: false }), false)
 })
 
 test('passed attempts block the quiz permanently and are labeled as successful', () => {

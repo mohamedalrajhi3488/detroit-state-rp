@@ -2147,7 +2147,7 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                 setQuizDraftQuestions((currentQuestions) => [...currentQuestions, {
                   id: `quiz-q-${Date.now()}`,
                   question: 'سؤال جديد',
-                  options: ['خيار 1', 'خيار 2', 'خيار 3', 'خيار 4'],
+                  options: ['خيار 1', 'خيار 2', 'خيار 3', 'خيار 4', 'خيار 5', 'خيار 6'],
                   correctIndex: 0
                 }])
               }}>+ إضافة سؤال</button>

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { getQuizEligibility, QUIZ_COOLDOWN_MS, resolveQuizTimeoutMinutes, shouldTreatQuizExitAsAbandon, normalizeQuizFailureMeta } from '../quizStatusUtils.mjs'
+import { getQuizEligibility, QUIZ_COOLDOWN_MS, resolveQuizTimeoutMinutes, shouldTreatQuizExitAsAbandon, normalizeQuizFailureMeta, shouldIgnoreQuizAbandonRecording } from '../quizStatusUtils.mjs'
 
 const buildScoreSummary = (questions, answers = {}) => {
   let correct = 0
@@ -259,7 +259,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     }
 
     const handleQuizLeave = () => {
-      if (shouldTreatQuizExitAsAbandon({ eventName: 'pagehide' })) {
+      if (shouldTreatQuizExitAsAbandon({ eventName: 'pagehide' }) && !shouldIgnoreQuizAbandonRecording({ started, submitted, timedOut, failSubmissionRef: failSubmissionRef.current, finalized: Boolean(localResult || submitted) })) {
         recordQuizFailure({ reason: 'abandon', customAnswers: answersRef.current })
       }
     }
@@ -268,14 +268,14 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     window.addEventListener('pagehide', handleQuizLeave)
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => {
-      if (!failSubmissionRef.current && !submitted && !timedOut && started) {
+      if (!shouldIgnoreQuizAbandonRecording({ started, submitted, timedOut, failSubmissionRef: failSubmissionRef.current, finalized: Boolean(localResult || submitted) })) {
         recordQuizFailure({ reason: 'abandon', customAnswers: answersRef.current })
       }
       window.removeEventListener('beforeunload', handleBeforeUnload)
       window.removeEventListener('pagehide', handleQuizLeave)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [started, submitted, timedOut, loggedUser?.id, failMarkerKey])
+  }, [started, submitted, timedOut, loggedUser?.id, failMarkerKey, localResult])
 
   useEffect(() => {
     if (!loggedUser?.id) return
@@ -392,6 +392,7 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
     const unanswered = safeQuestions.some((question) => answers[question.id] === undefined)
     if (unanswered) return
 
+    failSubmissionRef.current = true
     setSubmitting(true)
 
     const score = buildScoreSummary(safeQuestions, answers)
@@ -406,13 +407,15 @@ export default function QuizPage({ loggedUser, questions = [], onSubmitResult, o
       total: safeQuestions.length,
       passed,
       submittedAt: new Date().toISOString(),
-      timedOut: false
+      timedOut: false,
+      cheatAttempt: false,
+      abandoned: false,
+      reason: passed ? 'completed' : 'completed'
     }
 
     if (loggedUser?.id) {
       localStorage.removeItem(failMarkerKey)
     }
-    failSubmissionRef.current = false
     sessionStartAtRef.current = null
 
     let response = null
