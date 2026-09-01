@@ -1227,6 +1227,8 @@ img { max-width: 100%; display: block; }
     transform: translateX(110%);
     transition: transform 220ms ease;
     padding: 18px 14px 20px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .mobile-side-menu.open {
