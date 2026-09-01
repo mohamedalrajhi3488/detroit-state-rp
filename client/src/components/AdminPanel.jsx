@@ -1716,23 +1716,26 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                         type="text"
                         value={group.title}
                         onChange={(event) => {
-                          const nextGroups = rulesDraftGroups.map((item) => item.id === group.id ? { ...item, title: event.target.value } : item)
-                          setRulesDraftGroups(nextGroups)
+                          setRulesDraftGroups((currentGroups) => currentGroups.map((item) => item.id === group.id ? { ...item, title: event.target.value } : item))
                         }}
                         placeholder="عنوان القسم"
                       />
                       <div className="row-actions">
                         <button type="button" className="mini-btn" onClick={() => {
-                          const nextGroups = [...rulesDraftGroups]
-                          const [item] = nextGroups.splice(groupIndex, 1)
-                          nextGroups.splice(Math.max(0, groupIndex - 1), 0, item)
-                          setRulesDraftGroups(nextGroups)
+                          setRulesDraftGroups((currentGroups) => {
+                            const nextGroups = [...currentGroups]
+                            const [item] = nextGroups.splice(groupIndex, 1)
+                            nextGroups.splice(Math.max(0, groupIndex - 1), 0, item)
+                            return nextGroups
+                          })
                         }} disabled={groupIndex === 0}>↑</button>
                         <button type="button" className="mini-btn" onClick={() => {
-                          const nextGroups = [...rulesDraftGroups]
-                          const [item] = nextGroups.splice(groupIndex, 1)
-                          nextGroups.splice(Math.min(nextGroups.length, groupIndex + 1), 0, item)
-                          setRulesDraftGroups(nextGroups)
+                          setRulesDraftGroups((currentGroups) => {
+                            const nextGroups = [...currentGroups]
+                            const [item] = nextGroups.splice(groupIndex, 1)
+                            nextGroups.splice(Math.min(nextGroups.length, groupIndex + 1), 0, item)
+                            return nextGroups
+                          })
                         }} disabled={groupIndex === rulesDraftGroups.length - 1}>↓</button>
                         <button type="button" className="mini-btn danger" onClick={() => setPendingDelete({ type: 'rules-group', id: group.id, name: group.title || 'هذا القسم' })}>حذف</button>
                       </div>
@@ -1745,30 +1748,33 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                             type="text"
                             value={item.text}
                             onChange={(event) => {
-                              const nextGroups = rulesDraftGroups.map((groupItem) => groupItem.id === group.id ? {
+                              setRulesDraftGroups((currentGroups) => currentGroups.map((groupItem) => groupItem.id === group.id ? {
                                 ...groupItem,
                                 items: (groupItem.items || []).map((ruleItem) => ruleItem.id === item.id ? { ...ruleItem, text: event.target.value } : ruleItem)
-                              } : groupItem)
-                              setRulesDraftGroups(nextGroups)
+                              } : groupItem))
                             }}
                             placeholder="نص القاعدة"
                           />
                           <div className="row-actions">
                             <button type="button" className="mini-btn" onClick={() => {
-                              const nextGroups = rulesDraftGroups.map((g) => g.id === group.id ? { ...g, items: [...(g.items || [])] } : g)
-                              const items = nextGroups[groupIndex].items || []
-                              const [selected] = items.splice(itemIndex, 1)
-                              items.splice(Math.max(0, itemIndex - 1), 0, selected)
-                              nextGroups[groupIndex] = { ...nextGroups[groupIndex], items }
-                              setRulesDraftGroups(nextGroups)
+                              setRulesDraftGroups((currentGroups) => {
+                                const nextGroups = currentGroups.map((g) => g.id === group.id ? { ...g, items: [...(g.items || [])] } : g)
+                                const items = nextGroups[groupIndex].items || []
+                                const [selected] = items.splice(itemIndex, 1)
+                                items.splice(Math.max(0, itemIndex - 1), 0, selected)
+                                nextGroups[groupIndex] = { ...nextGroups[groupIndex], items }
+                                return nextGroups
+                              })
                             }} disabled={itemIndex === 0}>↑</button>
                             <button type="button" className="mini-btn" onClick={() => {
-                              const nextGroups = rulesDraftGroups.map((g) => g.id === group.id ? { ...g, items: [...(g.items || [])] } : g)
-                              const items = nextGroups[groupIndex].items || []
-                              const [selected] = items.splice(itemIndex, 1)
-                              items.splice(Math.min(items.length, itemIndex + 1), 0, selected)
-                              nextGroups[groupIndex] = { ...nextGroups[groupIndex], items }
-                              setRulesDraftGroups(nextGroups)
+                              setRulesDraftGroups((currentGroups) => {
+                                const nextGroups = currentGroups.map((g) => g.id === group.id ? { ...g, items: [...(g.items || [])] } : g)
+                                const items = nextGroups[groupIndex].items || []
+                                const [selected] = items.splice(itemIndex, 1)
+                                items.splice(Math.min(items.length, itemIndex + 1), 0, selected)
+                                nextGroups[groupIndex] = { ...nextGroups[groupIndex], items }
+                                return nextGroups
+                              })
                             }} disabled={itemIndex === (group.items || []).length - 1}>↓</button>
                             <button type="button" className="mini-btn danger" onClick={() => setPendingDelete({ type: 'rules-item', id: item.id, groupId: group.id, name: item.text || 'هذه القاعدة' })}>حذف</button>
                           </div>
@@ -1777,11 +1783,10 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                     </div>
 
                     <button type="button" className="mini-btn" onClick={() => {
-                      const nextGroups = rulesDraftGroups.map((groupItem) => groupItem.id === group.id ? {
+                      setRulesDraftGroups((currentGroups) => currentGroups.map((groupItem) => groupItem.id === group.id ? {
                         ...groupItem,
                         items: [...(groupItem.items || []), { id: `rule-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`, text: 'قاعدة جديدة' }]
-                      } : groupItem)
-                      setRulesDraftGroups(nextGroups)
+                      } : groupItem))
                     }}>+ إضافة قاعدة</button>
                   </div>
                 ))}
