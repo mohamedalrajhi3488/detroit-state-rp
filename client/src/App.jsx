@@ -1173,6 +1173,7 @@ export default function App() {
           />
 
           <div className="news-hero-content">
+            <span className="rules-page-eyebrow">الأخبار</span>
             <h1 className="hero-title news-title">DS NEWS</h1>
 
             <p className="hero-subtitle news-subtitle">

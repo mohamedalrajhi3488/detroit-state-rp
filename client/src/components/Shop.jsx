@@ -19,6 +19,7 @@ export default function Shop({ products = [] }) {
         <div className="shop-hero hero-shell">
           <div className="shop-hero-backdrop hero-background" style={{ backgroundImage: `linear-gradient(90deg, rgba(3,7,13,0.74), rgba(3,7,13,0.4)), url('/img/banner.png')` }} />
           <div className="hero-content shop-hero-copy">
+            <span className="rules-page-eyebrow">المتجر</span>
             <h1 className="hero-title shop-title">DS STORE</h1>
 
             <p className="hero-subtitle shop-subtitle">

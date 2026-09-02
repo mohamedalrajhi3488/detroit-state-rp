@@ -137,7 +137,7 @@ export default function StaffPage({ staff = [] }) {
     return (
       <section className="dynamic-page-shell staff-shell-empty">
         <div className="dynamic-page-card">
-          <span className="dynamic-page-badge">الطاقم الإداري</span>
+          <span className="rules-page-eyebrow">الإدارة</span>
           <h2>الطاقم الإداري</h2>
           <p>سيظهر هنا فريق الإدارة، المالكين، والمشرفين عند إضافة أول عضو.</p>
         </div>
@@ -150,8 +150,9 @@ export default function StaffPage({ staff = [] }) {
       <div className="staff-page-hero hero-shell">
         <div className="staff-page-backdrop hero-background" aria-hidden="true" />
         <div className="staff-page-hero-inner">
-          <h1 className="staff-page-title">الفريق وراء ديترويت </h1>
-          <p>تعرفوا على الفريق الإداري والتقني الذي يبني لكم أفضل تجربة في ديترويت .</p>
+          <span className="rules-page-eyebrow">الإدارة</span>
+          <h1 className="staff-page-title">الفريق وراء ديترويت</h1>
+          <p>تعرفوا على الفريق الإداري والتقني الذي يبني لكم أفضل تجربة في ديترويت.</p>
         </div>
       </div>
 
