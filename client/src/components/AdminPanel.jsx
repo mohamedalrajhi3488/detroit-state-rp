@@ -2773,12 +2773,12 @@ export default function AdminPanel({ user, data, activityLog = [], onDataChange,
                 <div className="creator-form-grid">
                   <label className="creator-field">
                     <span>اسم العضو</span>
-                    <input type="text" value={staffForm.name} onChange={(event) => setStaffForm((current) => ({ ...current, name: event.target.value }))} placeholder="مثال: Power" />
+                    <input type="text" value={staffForm.name} onChange={(event) => setStaffForm((current) => ({ ...current, name: event.target.value }))} placeholder="مثال: Dreko" />
                   </label>
 
                   <label className="creator-field">
                     <span>اسم الحساب / النيش</span>
-                    <input type="text" value={staffForm.username} onChange={(event) => setStaffForm((current) => ({ ...current, username: event.target.value }))} placeholder="مثال: power" />
+                    <input type="text" value={staffForm.username} onChange={(event) => setStaffForm((current) => ({ ...current, username: event.target.value }))} placeholder="مثال: Dreko" />
                   </label>
 
                   <label className="creator-field">
